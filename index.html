@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GD Level Hub - Compartir Niveles .gdlvl</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SDKs de Firebase (Versión compatible con etiquetas script) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { background-color: #0c0f1d; color: #e2e8f0; font-family: system-ui, sans-serif; }
+    .gd-border { border: 2px solid #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
+    .gd-btn-green { background: linear-gradient(180deg, #22c55e 0%, #15803d 100%); border-bottom: 4px solid #166534; }
+    .gd-btn-green:hover { background: #22c55e; }
+    .gd-card { background: #161b33; border: 1px solid #2a345e; transition: all 0.2s ease; }
+    .gd-card:hover { border-color: #00f0ff; transform: translateY(-2px); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- NAVBAR -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="#/" class="flex items-center gap-2 text-xl font-black text-cyan-400 tracking-wider">
+        <i data-lucide="square"></i> GD HUB
+      </a>
+      <nav class="hidden md:flex items-center gap-6 font-semibold text-sm">
+        <a href="#/" class="hover:text-cyan-400 transition" id="nav-home">Inicio</a>
+        <a href="#/populares" class="hover:text-cyan-400 transition" id="nav-popular">Populares</a>
+        <a href="#/destacados" class="hover:text-yellow-400 transition flex items-center gap-1 text-yellow-500" id="nav-featured">
+          <i data-lucide="star" class="w-4 h-4"></i> Destacados
+        </a>
+        <a href="#/buscar-codigo" class="hover:text-cyan-400 transition" id="nav-code">Buscar Código</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button onclick="toggleInfoModal()" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-cyan-400" title="Información">
+          <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </button>
+        <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-xs px-2 py-1.5 rounded border border-slate-700 font-semibold cursor-pointer">
+          <option value="es">ES 🇪🇸</option>
+          <option value="en">EN 🇺🇸</option>
+        </select>
+        <a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">Iniciar Sesión</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO CAMBIANTE -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-4" id="app-content"></main>
+
+  <!-- MODAL DE INFORMACIÓN Y AVISO LEGAL -->
+  <div id="info-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-slate-900 border-2 border-cyan-500 rounded-xl p-6 max-w-md w-full shadow-2xl relative">
+      <button onclick="toggleInfoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+      <div class="flex items-center gap-3 mb-4 text-cyan-400">
+        <i data-lucide="info" class="w-8 h-8"></i>
+        <h3 class="text-xl font-bold" id="info-title">¿Para qué sirve esta página?</h3>
+      </div>
+      <p class="text-slate-300 text-sm leading-relaxed mb-3" id="info-desc">
+        Esta plataforma está hecha para compartir archivos de nivel <strong>.gdlvl</strong> directamente entre amigos sin tener que subirlos a los servidores oficiales de Geometry Dash.
+      </p>
+      <div class="bg-red-950/40 border border-red-500/40 p-3 rounded text-xs text-red-300 mb-4" id="info-warning">
+        ⚠️ <strong>Aviso legal:</strong> No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que <strong>tú eres el único que decide subirlo y exponerlo aquí</strong>.
+      </div>
+      <button onclick="toggleInfoModal()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-sm">
+        Entendido
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // CONFIGURACIÓN DE FIREBASE (Tus credenciales reales)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCrKSQuCsnPoQR4VrVk6ENq5vbLcfdaRGk",
+      authDomain: "gd-lvl-share.firebaseapp.com",
+      projectId: "gd-lvl-share",
+      storageBucket: "gd-lvl-share.firebasestorage.app",
+      messagingSenderId: "44995913839",
+      appId: "1:44995913839:web:ab13af88a274355279059a",
+      measurementId: "G-WPNR1G8D9C"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const translations = {
+      es: {
+        home: "Inicio", popular: "Populares", featured: "Destacados", code: "Buscar Código", login: "Iniciar Sesión",
+        infoTitle: "¿Para qué sirve esta página?",
+        infoDesc: "Esta plataforma está hecha para compartir archivos de nivel .gdlvl de Geometry Dash sin necesidad de subirlos a los servidores oficiales.",
+        infoWarning: "⚠️ Aviso legal: No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que tú eres el único que decide subirlo y exponerlo aquí.",
+        recentLevels: "Niveles Recientes (Públicos)", popularLevels: "Niveles Más Populares", featuredLevels: "Niveles Destacados",
+        searchByCode: "Ingresa el Código de Acceso Único", unlistedCodePlaceholder: "Ej: X8K2P9"
+      },
+      en: {
+        home: "Home", popular: "Popular", featured: "Featured", code: "Search Code", login: "Login",
+        infoTitle: "What is this site for?",
+        infoDesc: "This platform is built to share .gdlvl level files directly with friends without having to upload them to the official Geometry Dash servers.",
+        infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because YOU decided to upload and share it here.",
+        recentLevels: "Recent Levels (Public)", popularLevels: "Most Popular Levels", featuredLevels: "Featured Levels",
+        searchByCode: "Enter Unlisted Access Code", unlistedCodePlaceholder: "E.g.: X8K2P9"
+      }
+    };
+
+    let currentLang = 'es';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById('nav-home').innerText = t.home;
+      document.getElementById('nav-popular').innerText = t.popular;
+      document.getElementById('nav-featured').innerText = `★ ${t.featured}`;
+      document.getElementById('nav-code').innerText = t.code;
+      document.getElementById('btn-login-text').innerText = t.login;
+      document.getElementById('info-title').innerText = t.infoTitle;
+      document.getElementById('info-desc').innerText = t.infoDesc;
+      document.getElementById('info-warning').innerHTML = t.infoWarning;
+      renderRoute();
+    }
+
+    function toggleInfoModal() {
+      document.getElementById('info-modal').classList.toggle('hidden');
+    }
+
+    window.addEventListener('hashchange', renderRoute);
+    window.addEventListener('load', () => { lucide.createIcons(); renderRoute(); });
+
+    function renderRoute() {
+      const hash = window.location.hash || '#/';
+      const app = document.getElementById('app-content');
+      const t = translations[currentLang];
+
+      if (hash === '#/' || hash === '#/recientes') {
+        app.innerHTML = `
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-black text-cyan-400">${t.recentLevels}</h1>
+            <a href="#/subir" class="px-4 py-2 gd-btn-green font-bold rounded text-sm text-white">+ Subir .gdlvl</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
+            <p class="text-slate-400 text-sm">Cargando niveles...</p>
+          </div>
+        `;
+        cargarNivelesPublicos();
+      } else if (hash === '#/subir') {
+        app.innerHTML = `
+          <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-4">
+            <h2 class="text-xl font-bold text-cyan-400 mb-4">Subir Nivel .gdlvl</h2>
+            <form onsubmit="subirNivelBase64(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Nivel</label>
+                <input type="text" id="nombre-nivel" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm outline-none focus:border-cyan-400">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Visibilidad</label>
+                <select id="visibilidad-nivel" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+                  <option value="publico">Público (Visible en el feed)</option>
+                  <option value="nolistado">No Listado (Solo con código)</option>
+                  <option value="privado">Privado (Solo tú)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Imagen (Máximo 1 MB)</label>
+                <input type="file" id="input-imagen" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Archivo .gdlvl</label>
+                <input type="file" id="input-archivo" accept=".gdlvl" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
+              </div>
+              <button type="submit" class="w-full py-2 gd-btn-green font-bold rounded text-white text-sm">Publicar Nivel Gratis</button>
+            </form>
+          </div>
+        `;
+      } else if (hash === '#/populares') {
+        app.innerHTML = `<h1 class="text-2xl font-black text-cyan-400 mb-6">${t.popularLevels}</h1>`;
+      } else if (hash === '#/destacados') {
+        app.innerHTML = `<h1 class="text-2xl font-black text-yellow-400 mb-6">${t.featuredLevels}</h1>`;
+      } else if (hash === '#/buscar-codigo') {
+        app.innerHTML = `
+          <div class="max-w-md mx-auto text-center py-12">
+            <h2 class="text-xl font-bold mb-2">${t.searchByCode}</h2>
+            <div class="flex gap-2 mt-4">
+              <input type="text" id="codigo-busqueda" placeholder="${t.unlistedCodePlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded px-4 py-2 text-center uppercase font-mono text-lg outline-none">
+              <button onclick="buscarPorCodigo()" class="px-6 py-2 bg-cyan-600 font-bold rounded hover:bg-cyan-500">Buscar</button>
+            </div>
+            <div id="resultado-codigo" class="mt-6"></div>
+          </div>
+        `;
+      } else if (hash === '#/login') {
+        app.innerHTML = `
+          <div class="max-w-sm mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-8">
+            <h2 class="text-xl font-bold text-center mb-4">Iniciar Sesión / Registro</h2>
+            <input type="email" id="login-email" placeholder="Correo electrónico" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm">
+            <input type="password" id="login-pass" placeholder="Contraseña" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-4 text-sm">
+            <div class="flex gap-2">
+              <button onclick="iniciarSesion()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500">Entrar</button>
+              <button onclick="registrarUsuario()" class="w-full py-2 bg-slate-700 font-bold rounded text-sm hover:bg-slate-600">Registrarse</button>
+            </div>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    async function subirNivelBase64(e) {
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ Debes iniciar sesión antes de subir un nivel.");
+        window.location.hash = '#/login';
+        return;
+      }
+
+      const nombre = document.getElementById('nombre-nivel').value;
+      const visibilidad = document.getElementById('visibilidad-nivel').value;
+      const fileImg = document.getElementById('input-imagen').files[0];
+      const fileGdlvl = document.getElementById('input-archivo').files[0];
+
+      if (fileImg.size > 1024 * 1024) {
+        alert("❌ La imagen supera 1 MB. Por favor elige una imagen más ligera.");
+        return;
+      }
+
+      alert("⏳ Procesando y subiendo nivel gratis...");
+
+      const codigoUnico = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const leerComoBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      };
+
+      try {
+        const imgBase64 = await leerComoBase64(fileImg);
+        const gdlvlBase64 = await leerComoBase64(fileGdlvl);
+
+        await db.collection("niveles").add({
+          nombre: nombre,
+          autor: user.email,
+          visibilidad: visibilidad,
+          codigo: codigoUnico,
+          imagen: imgBase64,
+          archivo: gdlvlBase64,
+          likes: 0,
+          dislikes: 0,
+          isFeatured: false,
+          fecha: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`✅ ¡Nivel subido con éxito! ${visibilidad === 'nolistado' ? 'Tu código secreto es: ' + codigoUnico : ''}`);
+        window.location.hash = '#/';
+      } catch (err) {
+        alert("Error al subir: " + err.message);
+      }
+    }
+
+    function cargarNivelesPublicos() {
+      const grid = document.getElementById('grid-niveles');
+      db.collection("niveles").where("visibilidad", "==", "publico").get().then((snapshot) => {
+        if (snapshot.empty) {
+          grid.innerHTML = `<p class="text-slate-400 text-sm">No hay niveles públicos todavía. ¡Sé el primero en subir uno!</p>`;
+          return;
+        }
+        grid.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const n = doc.data();
+          grid.innerHTML += `
+            <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
+              <div>
+                <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
+                <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
+                <p class="text-xs text-slate-400 mb-3">por <span class="text-cyan-400 font-semibold">${n.autor}</span></p>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
+                <span class="font-bold text-slate-400">👍 ${n.likes}</span>
+                <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">Descargar</a>
+              </div>
+            </div>
+          `;
+        });
+      });
+    }
+
+    function iniciarSesion() {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-pass').value;
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(() => { alert("¡Sesión iniciada!"); window.location.hash = '#/'; })
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function registrarUsuario() {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-pass').value;
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then(() => { alert("¡Cuenta creada con éxito!"); window.location.hash = '#/'; })
+        .catch(err => alert("Error: " + err.message));
+    }
+
+    function buscarPorCodigo() {
+      const codigo = document.getElementById('codigo-busqueda').value.trim().toUpperCase();
+      const contenedor = document.getElementById('resultado-codigo');
+      db.collection("niveles").where("codigo", "==", codigo).get().then(snapshot => {
+        if (snapshot.empty) {
+          contenedor.innerHTML = `<p class="text-red-400 text-sm">No se encontró ningún nivel con ese código.</p>`;
+          return;
+        }
+        snapshot.forEach(doc => {
+          const n = doc.data();
+          contenedor.innerHTML = `
+            <div class="gd-card rounded-lg p-4 mt-4 text-left">
+              <h3 class="font-bold text-lg text-white">${n.nombre}</h3>
+              <p class="text-xs text-slate-400 mb-3">por ${n.autor}</p>
+              <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-4 py-2 bg-cyan-600 text-white rounded font-bold text-xs inline-block">Descargar .gdlvl</a>
+            </div>
+          `;
+        });
+      });
+    }
+  </script>
+</body>
+</html>
