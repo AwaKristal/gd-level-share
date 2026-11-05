@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GD Level Hub - Compartir Niveles .gdlvl</title>
+  <title>GD Level Share</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- SDKs de Firebase -->
@@ -20,13 +20,13 @@
     .gd-card:hover { border-color: #00f0ff; transform: translateY(-2px); }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col relative pb-8">
 
   <!-- NAVBAR -->
   <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="#/" class="flex items-center gap-2 text-xl font-black text-cyan-400 tracking-wider">
-        <i data-lucide="square"></i> GD HUB
+        <i data-lucide="square"></i> GD LEVEL SHARE
       </a>
       <nav class="hidden md:flex items-center gap-6 font-semibold text-sm">
         <a href="#/" class="hover:text-cyan-400 transition" id="nav-home">Inicio</a>
@@ -55,7 +55,12 @@
   <!-- CONTENIDO CAMBIANTE -->
   <main class="flex-grow max-w-6xl w-full mx-auto p-4" id="app-content"></main>
 
-  <!-- MODAL DE INFORMACIÓN Y AVISO LEGAL -->
+  <!-- INDICADOR DE VERSIÓN FLOTANTE -->
+  <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
+    VERSION: <span class="text-white font-bold">v1.3.0.0</span>
+  </div>
+
+  <!-- MODAL DE INFORMACIÓN -->
   <div id="info-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
     <div class="bg-slate-900 border-2 border-cyan-500 rounded-xl p-6 max-w-md w-full shadow-2xl relative">
       <button onclick="toggleInfoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
@@ -106,7 +111,7 @@
         uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", visibility: "Visibilidad inicial",
         public: "Público (Visible en el feed)", unlisted: "No Listado (Solo con código)", private: "Privado (Solo tú)",
         imageLabel: "Imagen (Máximo 1 MB)", fileLabel: "Archivo .gdlvl", publishBtn: "Publicar Nivel Gratis",
-        loginTitle: "Iniciar Sesión / Registro", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", avatarLabel: "Foto de perfil (Máx 1MB)",
+        loginTitle: "Iniciar Sesión / Registro", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Registrarse", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador"
       },
       en: {
@@ -119,27 +124,48 @@
         uploadTitle: "Upload .gdlvl Level", levelName: "Level Name", visibility: "Initial Visibility",
         public: "Public (Visible on feed)", unlisted: "Unlisted (Code required)", private: "Private (Only you)",
         imageLabel: "Image (Max 1 MB)", fileLabel: ".gdlvl File", publishBtn: "Publish Level Free",
-        loginTitle: "Login / Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", avatarLabel: "Profile Picture (Max 1MB)",
+        loginTitle: "Login / Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
         enterBtn: "Log In", registerBtn: "Register", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator"
       }
     };
 
     let currentLang = 'es';
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
       const authContainer = document.getElementById('auth-nav-container');
       if (user) {
-        db.collection("usuarios").doc(user.uid).get().then(doc => {
-          const avatar = doc.exists && doc.data().avatar ? doc.data().avatar : 'https://via.placeholder.com/40';
+        const docUser = await db.collection("usuarios").doc(user.uid).get();
+        if (docUser.exists) {
+          const u = docUser.data();
+
+          // VERIFICACIÓN DE BANEO PERMANENTE AL CARGAR
+          if (u.estadoBaneo === 'perma') {
+            document.body.innerHTML = `
+              <div class="min-h-screen bg-red-950 flex flex-col items-center justify-center p-6 text-center">
+                <h1 class="text-4xl font-black text-red-500 mb-4">⛔ CUENTA BANEADA PERMANENTEMENTE</h1>
+                <p class="text-lg text-red-200 mb-6 max-w-md">Has sido baneado permanentemente por violar las normas de la comunidad. Tu cuenta y tus datos han sido destruidos por completo.</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            `;
+            // AUTODESTRUCCIÓN EN EL INSTANTE
+            await db.collection("usuarios").doc(user.uid).delete();
+            await user.delete();
+            setTimeout(() => { window.location.reload(); }, 3500);
+            return;
+          }
+
+          const avatar = u.avatar || 'https://via.placeholder.com/40';
           const username = user.displayName || 'Usuario';
           authContainer.innerHTML = `
             <div class="flex items-center gap-2">
-              <img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-cyan-400">
-              <span class="text-xs font-bold text-cyan-400 hidden sm:inline">${username}</span>
-              <button onclick="cerrarSesion()" class="px-2 py-1 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="Cerrar sesión">Salir</button>
+              <a href="#/perfil/${user.uid}" class="flex items-center gap-2 hover:opacity-80">
+                <img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-cyan-400">
+                <span class="text-xs font-bold text-cyan-400 hidden sm:inline">${username}</span>
+              </a>
+              <button onclick="cerrarSesion()" class="px-2 py-1 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400 ml-1" title="Cerrar sesión">Salir</button>
             </div>
           `;
-        });
+        }
       } else {
         authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">${translations[currentLang].login}</a>`;
       }
@@ -252,6 +278,7 @@
             <input type="text" id="register-username" placeholder="${t.usernamePlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
             <input type="email" id="login-email" placeholder="${t.emailPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
             <input type="password" id="login-pass" placeholder="${t.passPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
+            <textarea id="register-bio" placeholder="${t.bioPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none"></textarea>
             <div class="mb-4">
               <label class="block text-xs font-semibold text-slate-400 mb-1">${t.avatarLabel}</label>
               <input type="file" id="register-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
@@ -290,6 +317,16 @@
         alert("⚠️ Debes iniciar sesión antes de subir un nivel.");
         window.location.hash = '#/login';
         return;
+      }
+
+      // Verificar si el usuario está bloqueado para subir niveles
+      const userDoc = await db.collection("usuarios").doc(user.uid).get();
+      if (userDoc.exists) {
+        const u = userDoc.data();
+        if (u.bloqueoSubidaHasta && new Date(u.bloqueoSubidaHasta.toDate()) > new Date()) {
+          alert(`🚫 Tienes el privilegio de subir niveles bloqueado hasta: ${u.bloqueoSubidaHasta.toDate().toLocaleString()}`);
+          return;
+        }
       }
 
       const nombre = document.getElementById('nombre-nivel').value;
@@ -384,8 +421,6 @@
         visibilidad: nuevaVisibilidad
       }).then(() => {
         cargarNivelesPublicos();
-      }).catch(err => {
-        alert("Error al actualizar: " + err.message);
       });
     }
 
@@ -415,7 +450,7 @@
                   <img src="${u.avatar || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full object-cover border border-cyan-400">
                   <div>
                     <h3 class="font-bold text-white">${u.username}</h3>
-                    <p class="text-xs text-slate-400">Creador de GD</p>
+                    <p class="text-xs text-slate-400">${u.bio || 'Creador de GD'}</p>
                   </div>
                 </div>
                 <a href="#/perfil/${doc.id}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs">Ver Perfil</a>
@@ -429,52 +464,95 @@
       });
     }
 
-    function cargarPerfilUsuario(uid) {
+    async function cargarPerfilUsuario(uid) {
       const app = document.getElementById('app-content');
-      db.collection("usuarios").doc(uid).get().then(docUser => {
-        if (!docUser.exists) {
-          app.innerHTML = `<p class="text-red-400 text-center py-12">Usuario no encontrado.</p>`;
-          return;
-        }
-        const u = docUser.data();
-        app.innerHTML = `
-          <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex items-center gap-4">
-            <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400">
-            <div>
+      const currentUser = auth.currentUser;
+      
+      const docUser = await db.collection("usuarios").doc(uid).get();
+      if (!docUser.exists) {
+        app.innerHTML = `<p class="text-red-400 text-center py-12">Usuario no encontrado.</p>`;
+        return;
+      }
+      const u = docUser.data();
+      
+      let fechaFormateada = "Recientemente";
+      if (u.creado) {
+        const f = u.creado.toDate();
+        fechaFormateada = `${f.getDate()}/${f.getMonth() + 1}/${f.getFullYear()}`;
+      }
+
+      app.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+          <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400">
+          <div class="flex-grow">
+            <div class="flex items-center gap-2 mb-1">
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
-              <p class="text-xs text-cyan-400">Creador verificado</p>
+              <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">Creador</span>
+            </div>
+            <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || 'Sin descripción todavía.'}</p>
+            <p class="text-xs text-slate-500 font-mono">🗓️ Se unió el: ${fechaFormateada}</p>
+          </div>
+        </div>
+
+        <!-- PANEL DE SANCIÓN ADMIN (Si estás logueado y no es tu propio perfil) -->
+        ${currentUser && currentUser.uid !== uid ? `
+          <div class="bg-red-950/30 border border-red-500/40 p-4 rounded-xl mb-6">
+            <h3 class="text-sm font-bold text-red-400 mb-2">🛡️ Panel de Moderación de Usuario</h3>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="bloquearSubida('${uid}', 3)" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold">Bloquear Subida (3 Días)</button>
+              <button onclick="banearUsuario('${uid}', 'perma')" class="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold">Baneo PERMANENTE</button>
             </div>
           </div>
-          <h2 class="text-xl font-bold text-cyan-400 mb-4">Niveles Públicos del Creador</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-perfil-niveles">
-            <p class="text-slate-400 text-sm">Cargando niveles...</p>
-          </div>
-        `;
+        ` : ''}
 
-        const gridNiveles = document.getElementById('grid-perfil-niveles');
-        db.collection("niveles").where("uid", "==", uid).where("visibilidad", "==", "publico").get().then(snapshot => {
-          if (snapshot.empty) {
-            gridNiveles.innerHTML = `<p class="text-slate-400 text-sm">Este usuario no tiene niveles públicos publicados.</p>`;
-            return;
-          }
-          gridNiveles.innerHTML = "";
-          snapshot.forEach(docNivel => {
-            const n = docNivel.data();
-            gridNiveles.innerHTML += `
-              <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
-                <div>
-                  <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
-                  <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
-                </div>
-                <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
-                  <span class="font-bold text-slate-400">👍 ${n.likes}</span>
-                  <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">Descargar</a>
-                </div>
+        <h2 class="text-xl font-bold text-cyan-400 mb-4">Niveles Públicos del Creador</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-perfil-niveles">
+          <p class="text-slate-400 text-sm">Cargando niveles...</p>
+        </div>
+      `;
+
+      const gridNiveles = document.getElementById('grid-perfil-niveles');
+      db.collection("niveles").where("uid", "==", uid).where("visibilidad", "==", "publico").get().then(snapshot => {
+        if (snapshot.empty) {
+          gridNiveles.innerHTML = `<p class="text-slate-400 text-sm">Este usuario no tiene niveles públicos publicados.</p>`;
+          return;
+        }
+        gridNiveles.innerHTML = "";
+        snapshot.forEach(docNivel => {
+          const n = docNivel.data();
+          gridNiveles.innerHTML += `
+            <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
+              <div>
+                <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
+                <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
               </div>
-            `;
-          });
+              <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
+                <span class="font-bold text-slate-400">👍 ${n.likes}</span>
+                <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">Descargar</a>
+              </div>
+            </div>
+          `;
         });
       });
+    }
+
+    async function bloquearSubida(uid, dias) {
+      const fechaBloqueo = new Date();
+      fechaBloqueo.setDate(fechaBloqueo.getDate() + dias);
+      await db.collection("usuarios").doc(uid).update({
+        bloqueoSubidaHasta: firebase.firestore.Timestamp.fromDate(fechaBloqueo)
+      });
+      alert(`⚠️ Subida de niveles bloqueada durante ${dias} días a este usuario.`);
+    }
+
+    async function banearUsuario(uid, tipo) {
+      if (confirm("🚨 ¿Estás seguro de asestar un BANEO PERMANENTE? El usuario perderá la cuenta al volver a conectarse.")) {
+        await db.collection("usuarios").doc(uid).update({
+          estadoBaneo: tipo
+        });
+        alert("🔨 Usuario baneado permanentemente.");
+        window.location.hash = '#/';
+      }
     }
 
     function iniciarSesion() {
@@ -487,7 +565,34 @@
       }
 
       auth.signInWithEmailAndPassword(email, pass)
-        .then(() => { window.location.hash = '#/'; })
+        .then(async cred => {
+          const user = cred.user;
+          
+          if (!user.emailVerified) {
+            const userDoc = await db.collection("usuarios").doc(user.uid).get();
+            if (userDoc.exists) {
+              const dataUser = userDoc.data();
+              if (dataUser.creado) {
+                const fechaCreacion = dataUser.creado.toDate();
+                const diasTranscurridos = (new Date() - fechaCreacion) / (1000 * 60 * 60 * 24);
+                
+                if (diasTranscurridos > 3) {
+                  await db.collection("usuarios").doc(user.uid).delete();
+                  await user.delete();
+                  auth.signOut();
+                  mostrarErrorAuth("❌ Tu cuenta fue eliminada automáticamente por no verificar el correo en 3 días.");
+                  return;
+                }
+              }
+            }
+            
+            auth.signOut();
+            mostrarErrorAuth("⚠️ Debes verificar tu correo electrónico antes de entrar.");
+            return;
+          }
+
+          window.location.hash = '#/';
+        })
         .catch(err => {
           let msg = err.message;
           if (err.code === 'auth/invalid-email') msg = "El formato del correo electrónico no es válido.";
@@ -500,6 +605,7 @@
       const username = document.getElementById('register-username').value.trim();
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
+      const bio = document.getElementById('register-bio').value.trim();
       const avatarFile = document.getElementById('register-avatar').files[0];
 
       if (!username) {
@@ -526,15 +632,20 @@
 
       auth.createUserWithEmailAndPassword(email, pass)
         .then(async cred => {
+          await cred.user.sendEmailVerification();
           await cred.user.updateProfile({ displayName: username });
           await db.collection("usuarios").doc(cred.user.uid).set({
             username: username,
             email: email,
+            bio: bio || '¡Hola! Soy un creador de niveles en GD Level Share.',
             avatar: avatarBase64,
+            estadoBaneo: 'ninguno',
             creado: firebase.firestore.FieldValue.serverTimestamp()
           });
+          alert("✉️ ¡Cuenta creada con éxito! Te hemos enviado un correo de verificación.");
+          auth.signOut();
+          window.location.hash = '#/login';
         })
-        .then(() => { window.location.hash = '#/'; })
         .catch(err => {
           let msg = err.message;
           if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado.";
