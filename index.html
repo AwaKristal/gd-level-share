@@ -76,7 +76,7 @@
 
   <script>
     // ==========================================
-    // CONFIGURACIÓN DE FIREBASE (Tus credenciales reales)
+    // CONFIGURACIÓN DE FIREBASE
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyCrKSQuCsnPoQR4VrVk6ENq5vbLcfdaRGk",
@@ -198,11 +198,11 @@
         app.innerHTML = `
           <div class="max-w-sm mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-8">
             <h2 class="text-xl font-bold text-center mb-4">Iniciar Sesión / Registro</h2>
-            <input type="email" id="login-email" placeholder="Correo electrónico" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm">
-            <input type="password" id="login-pass" placeholder="Contraseña" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-4 text-sm">
+            <input type="email" id="login-email" placeholder="correo@ejemplo.com" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm outline-none focus:border-cyan-400">
+            <input type="password" id="login-pass" placeholder="Contraseña (mínimo 6 caracteres)" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-4 text-sm outline-none focus:border-cyan-400">
             <div class="flex gap-2">
-              <button onclick="iniciarSesion()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500">Entrar</button>
-              <button onclick="registrarUsuario()" class="w-full py-2 bg-slate-700 font-bold rounded text-sm hover:bg-slate-600">Registrarse</button>
+              <button onclick="iniciarSesion()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500 text-white">Entrar</button>
+              <button onclick="registrarUsuario()" class="w-full py-2 bg-slate-700 font-bold rounded text-sm hover:bg-slate-600 text-white">Registrarse</button>
             </div>
           </div>
         `;
@@ -298,15 +298,25 @@
       const pass = document.getElementById('login-pass').value;
       auth.signInWithEmailAndPassword(email, pass)
         .then(() => { alert("¡Sesión iniciada!"); window.location.hash = '#/'; })
-        .catch(err => alert("Error: " + err.message));
+        .catch(err => alert("Error al entrar: " + err.message));
     }
 
     function registrarUsuario() {
       const email = document.getElementById('login-email').value;
       const pass = document.getElementById('login-pass').value;
+
+      if (!email || !email.includes('@') || !email.includes('.')) {
+        alert("⚠️ Por favor ingresa un correo electrónico válido (ejemplo: tuusuario@gmail.com).");
+        return;
+      }
+      if (!pass || pass.length < 6) {
+        alert("⚠️ La contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+
       auth.createUserWithEmailAndPassword(email, pass)
         .then(() => { alert("¡Cuenta creada con éxito!"); window.location.hash = '#/'; })
-        .catch(err => alert("Error: " + err.message));
+        .catch(err => alert("Error al registrarse: " + err.message));
     }
 
     function buscarPorCodigo() {
