@@ -46,6 +46,12 @@
         </div>
       </div>
     </div>
+    <!-- MENÚ MÓVIL INFERIOR EN EL HEADER -->
+    <div class="flex md:hidden bg-slate-950 border-t border-slate-800 px-4 py-2 justify-around text-xs font-bold">
+      <a href="#/" class="text-cyan-400 hover:text-white" id="nav-home-m">Home</a>
+      <a href="#/buscar-codigo" class="text-cyan-400 hover:text-white" id="nav-code-m">Search Code</a>
+      <a href="#/buscar-usuarios" class="text-cyan-400 hover:text-white" id="nav-users-m">Search Users</a>
+    </div>
   </header>
 
   <!-- CONTENEDOR DE NOTIFICACIONES FLOTANTES (UI LIMPIA) -->
@@ -56,7 +62,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.3.0.0</span>
+    VERSION: <span class="text-white font-bold">v1.3.1.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -157,7 +163,7 @@
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Edit Profile", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
+        editProfile: "✏️ Editar Perfil", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
         noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas",
         followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores",
@@ -234,6 +240,9 @@
       document.getElementById('nav-home').innerText = t.home;
       document.getElementById('nav-code').innerText = t.code;
       document.getElementById('nav-users').innerText = t.users;
+      document.getElementById('nav-home-m').innerText = t.home;
+      document.getElementById('nav-code-m').innerText = t.code;
+      document.getElementById('nav-users-m').innerText = t.users;
       document.getElementById('info-title').innerText = t.infoTitle;
       document.getElementById('info-desc').innerText = t.infoDesc;
       document.getElementById('info-warning').innerHTML = t.infoWarning;
@@ -438,21 +447,6 @@
         `;
       }
       lucide.createIcons();
-    }
-
-    function mostrarToast(mensaje, tipo = 'success') {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-      const toast = document.createElement('div');
-      const bgColor = tipo === 'success' ? 'bg-slate-900 border-cyan-500 text-cyan-400' : 'bg-red-950 border-red-500 text-red-300';
-      toast.className = `pointer-events-auto border px-4 py-3 rounded-xl shadow-2xl text-xs font-bold flex items-center gap-2 transition transform translate-y-2 opacity-0 ${bgColor}`;
-      toast.innerHTML = `<span>${tipo === 'success' ? '✅' : '❌'}</span> <span>${mensaje}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
     }
 
     const leerComoBase64 = (file) => {
@@ -934,8 +928,8 @@
           <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">${t.backToMenu}</a>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
-          <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400">
-          <div class="flex-grow">
+          <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400 shrink-0">
+          <div class="flex-grow w-full">
             <div class="flex items-center gap-2 mb-1">
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
             </div>
@@ -956,7 +950,7 @@
             ${u.bloqueadoSubir ? `<p class="text-xs text-amber-400 font-bold mt-1">⚠️ Bloqueado para subir niveles. Motivo: ${u.bloqueadoSubirMotivo || 'Sin motivo'}</p>` : ''}
             ${u.estadoBaneo && u.estadoBaneo !== 'ninguno' ? `<p class="text-xs text-red-400 font-bold mt-1">⛔ Estado de Baneo: <span class="uppercase">${u.estadoBaneo}</span>. Motivo: ${u.baneoMotivo || 'Sin motivo'}</p>` : ''}
           </div>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 w-full md:w-auto">
             ${esMiPerfil ? `
               <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">${t.editProfile}</button>
               <button onclick="toggleOcultarStats(${ocultarEstadisticas})" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-bold transition">
@@ -1200,7 +1194,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (!email || !pass) {
-        mostrarErrorAuth("Please fill in all fields.");
+        mostrarToast("Please fill in all fields.", 'error');
         return;
       }
 
@@ -1208,7 +1202,7 @@
         .then(cred => {
           if (!cred.user.emailVerified) {
             auth.signOut();
-            mostrarErrorAuth("You must verify your email before logging in.");
+            mostrarToast("You must verify your email before logging in.", 'error');
             return;
           }
           window.location.hash = '#/';
@@ -1217,7 +1211,7 @@
           let msg = err.message;
           if (err.code === 'auth/invalid-email') msg = "Invalid email address.";
           if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Incorrect email or password.";
-          mostrarErrorAuth(msg);
+          mostrarToast(msg, 'error');
         });
     }
 
@@ -1229,22 +1223,22 @@
       const avatarFile = document.getElementById('register-avatar').files[0];
 
       if (!username) {
-        mostrarErrorAuth("You must enter a username.");
+        mostrarToast("You must enter a username.", 'error');
         return;
       }
       if (!email || !email.includes('@')) {
-        mostrarErrorAuth("Enter a valid email address.");
+        mostrarToast("Enter a valid email address.", 'error');
         return;
       }
       if (!pass || pass.length < 6) {
-        mostrarErrorAuth("Password must be at least 6 characters long.");
+        mostrarToast("Password must be at least 6 characters long.", 'error');
         return;
       }
 
       let avatarBase64 = "";
       if (avatarFile) {
         if (avatarFile.size > 1024 * 1024) {
-          mostrarErrorAuth("Profile picture exceeds 1 MB.");
+          mostrarToast("Profile picture exceeds 1 MB.", 'error');
           return;
         }
         avatarBase64 = await leerComoBase64(avatarFile);
@@ -1268,27 +1262,27 @@
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        mostrarExitoAuth("Account created successfully! Verification email sent.");
+        mostrarToast("Account created successfully! Verification email sent.");
         auth.signOut();
       } catch (err) {
         let msg = err.message;
         if (err.code === 'auth/email-already-in-use') msg = "This email is already registered.";
-        mostrarErrorAuth(msg);
+        mostrarToast(msg, 'error');
       }
     }
 
     function recuperarPassword() {
       const email = document.getElementById('login-email').value.trim();
       if (!email || !email.includes('@')) {
-        mostrarErrorAuth("Enter your email above to send you the reset link.");
+        mostrarToast("Enter your email above to send you the reset link.", 'error');
         return;
       }
       auth.sendPasswordResetEmail(email)
         .then(() => {
-          mostrarExitoAuth("Password reset email sent.");
+          mostrarToast("Password reset email sent.");
         })
         .catch(err => {
-          mostrarErrorAuth("Error: " + err.message);
+          mostrarToast("Error: " + err.message, 'error');
         });
     }
 
@@ -1297,7 +1291,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (!email || !pass) {
-        mostrarErrorAuth("Enter your email and password first to resend.");
+        mostrarToast("Enter your email and password first to resend.", 'error');
         return;
       }
 
@@ -1305,10 +1299,10 @@
         .then(async cred => {
           await cred.user.sendEmailVerification();
           auth.signOut();
-          mostrarExitoAuth("Verification email resent.");
+          mostrarToast("Verification email resent.");
         })
         .catch(err => {
-          mostrarErrorAuth("Could not resend: " + err.message);
+          mostrarToast("Could not resend: " + err.message, 'error');
         });
     }
 
