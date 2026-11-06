@@ -440,12 +440,19 @@
       lucide.createIcons();
     }
 
-    function mostrarErrorAuth(mensaje) {
-      mostrarToast(mensaje, 'error');
-    }
-
-    function mostrarExitoAuth(mensaje) {
-      mostrarToast(mensaje, 'success');
+    function mostrarToast(mensaje, tipo = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const bgColor = tipo === 'success' ? 'bg-slate-900 border-cyan-500 text-cyan-400' : 'bg-red-950 border-red-500 text-red-300';
+      toast.className = `pointer-events-auto border px-4 py-3 rounded-xl shadow-2xl text-xs font-bold flex items-center gap-2 transition transform translate-y-2 opacity-0 ${bgColor}`;
+      toast.innerHTML = `<span>${tipo === 'success' ? '✅' : '❌'}</span> <span>${mensaje}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
     }
 
     const leerComoBase64 = (file) => {
@@ -1308,20 +1315,16 @@
     function buscarPorCodigo() {
       const codigo = document.getElementById('codigo-busqueda').value.trim().toUpperCase();
       const contenedor = document.getElementById('resultado-codigo');
+      if (!codigo) return;
+
       db.collection("niveles").where("codigo", "==", codigo).get().then(snapshot => {
         if (snapshot.empty) {
-          contenedor.innerHTML = `<p class="text-red-400 text-sm">No level found with that code.</p>`;
+          contenedor.innerHTML = `<p class="text-red-400 text-sm mt-4">No level found with that code.</p>`;
           return;
         }
+        contenedor.innerHTML = "";
         snapshot.forEach(doc => {
-          const n = doc.data();
-          contenedor.innerHTML = `
-            <div class="gd-card rounded-lg p-4 mt-4 text-left">
-              <h3 class="font-bold text-lg text-white">${n.nombre}</h3>
-              <p class="text-xs text-slate-400 mb-3">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
-              <a href="${n.archivo}" download="${n.nombre}.gdlvl" onclick="registrarDescarga('${doc.id}')" class="px-4 py-2 bg-cyan-600 text-white rounded font-bold text-xs inline-block">Download .gdlvl</a>
-            </div>
-          `;
+          renderizarTarjetaNivel({ id: doc.id, ...doc.data() }, contenedor);
         });
       });
     }
