@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.8.0.0</span>
+    VERSION: <span class="text-white font-bold">v1.9.0.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -72,7 +72,7 @@
       <div class="bg-red-950/40 border border-red-500/40 p-3 rounded text-xs text-red-300 mb-4" id="info-warning">
         ⚠️ <strong>Aviso legal:</strong> No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que <strong>tú eres el único que decide subirlo y exponerlo aquí</strong>.
       </div>
-      <button onclick="toggleInfoModal()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-sm text-white">
+      <button onclick="toggleInfoModal()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-sm text-white" id="info-btn">
         Entendido
       </button>
     </div>
@@ -103,26 +103,46 @@
         infoTitle: "¿Para qué sirve esta página?",
         infoDesc: "Esta plataforma está hecha para compartir archivos .gdlvl de Geometry Dash sin necesidad de subirlos a los servidores oficiales.",
         infoWarning: "⚠️ Aviso legal: No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que tú eres el único que decide subirlo y exponerlo aquí.",
+        infoBtn: "Entendido",
+        mainMenu: "Menú Principal",
         recentLevels: "Niveles Recientes (Públicos)", popularLevels: "Niveles Más Populares", featuredLevels: "Niveles Destacados",
+        recentDesc: "Explora los últimos niveles subidos por la comunidad en tiempo real.",
+        popularDesc: "Descubre los niveles más descargados y valorados por todos.",
+        featuredDesc: "Joyas seleccionadas de la comunidad por su alta calidad.",
+        welcomeBack: "¡Bienvenido de vuelta!",
+        heroTitle: "¡Comparte tus niveles de Geometry Dash!",
+        heroDesc: "Inicia sesión o regístrate para subir tus archivos .gdlvl y gestionar tus creaciones gratis.",
+        viewProfile: "Ver mi perfil",
         searchByCode: "Ingresa el Código de Acceso Único", unlistedCodePlaceholder: "Ej: X8K2P9",
         uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", visibility: "Visibilidad inicial",
         public: "Público (Visible en el feed)", unlisted: "No Listado (Solo con código)", private: "Privado (Solo tú)",
         imageLabel: "Imagen (Máximo 1 MB)", fileLabel: "Archivo .gdlvl", publishBtn: "Publicar Nivel Gratis",
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
-        enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador"
+        enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
+        forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo"
       },
       en: {
         home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
         infoTitle: "What is this site for?",
         infoDesc: "This platform is built to share .gdlvl level files directly with friends without having to upload them to the official Geometry Dash servers.",
         infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because YOU decided to upload and share it here.",
+        infoBtn: "Got it",
+        mainMenu: "Main Menu",
         recentLevels: "Recent Levels (Public)", popularLevels: "Most Popular Levels", featuredLevels: "Featured Levels",
+        recentDesc: "Explore the latest levels uploaded by the community in real time.",
+        popularDesc: "Discover the most downloaded and rated levels.",
+        featuredDesc: "Handpicked community gems of high quality.",
+        welcomeBack: "Welcome back!",
+        heroTitle: "Share your Geometry Dash levels!",
+        heroDesc: "Log in or register to upload your .gdlvl files and manage your creations for free.",
+        viewProfile: "View my profile",
         searchByCode: "Enter Unlisted Access Code", unlistedCodePlaceholder: "E.g.: X8K2P9",
         uploadTitle: "Upload .gdlvl Level", levelName: "Level Name", visibility: "Initial Visibility",
         public: "Public (Visible on feed)", unlisted: "Unlisted (Code required)", private: "Private (Only you)",
         imageLabel: "Image (Max 1 MB)", fileLabel: ".gdlvl File", publishBtn: "Publish Level Free",
         loginTitle: "Log In", registerTitle: "Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
-        enterBtn: "Log In", registerBtn: "Create Account", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", editBtn: "Edit Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator"
+        enterBtn: "Log In", registerBtn: "Create Account", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", editBtn: "Edit Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator",
+        forgotPass: "Forgot password?", resendEmail: "Resend email"
       }
     };
 
@@ -166,7 +186,7 @@
             lucide.createIcons();
           }
         } catch (e) {
-          console.error("Error al cargar estado de usuario:", e);
+          console.error("Error al verificar perfil de usuario:", e);
         }
       } else {
         authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">${translations[currentLang].login}</a>`;
@@ -186,6 +206,7 @@
       document.getElementById('info-title').innerText = t.infoTitle;
       document.getElementById('info-desc').innerText = t.infoDesc;
       document.getElementById('info-warning').innerHTML = t.infoWarning;
+      document.getElementById('info-btn').innerText = t.infoBtn;
       renderRoute();
     }
 
@@ -205,9 +226,9 @@
         app.innerHTML = `
           <div id="home-user-header" class="mb-8"></div>
           <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-black text-cyan-400">Menú Principal</h1>
+            <h1 class="text-2xl font-black text-cyan-400">${t.mainMenu}</h1>
             <a href="#/subir" class="px-4 py-2 gd-btn-green font-bold rounded text-sm text-white flex items-center gap-1.5">
-              <i data-lucide="upload" class="w-4 h-4"></i> Subir .gdlvl
+              <i data-lucide="upload" class="w-4 h-4"></i> ${t.uploadTitle}
             </a>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -215,24 +236,24 @@
               <div class="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition">
                 <i data-lucide="clock" class="w-8 h-8"></i>
               </div>
-              <h2 class="text-xl font-bold text-white mb-2">Recientes</h2>
-              <p class="text-xs text-slate-400">Explora los últimos niveles subidos por la comunidad en tiempo real.</p>
+              <h2 class="text-xl font-bold text-white mb-2">${t.recentLevels.split(' ')[0]}</h2>
+              <p class="text-xs text-slate-400">${t.recentDesc}</p>
             </a>
 
             <a href="#/populares" class="gd-card p-6 rounded-2xl flex flex-col items-center text-center group">
               <div class="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 mb-4 group-hover:scale-110 transition">
                 <i data-lucide="trending-up" class="w-8 h-8"></i>
               </div>
-              <h2 class="text-xl font-bold text-white mb-2">Populares</h2>
-              <p class="text-xs text-slate-400">Descubre los niveles más descargados y valorados por todos.</p>
+              <h2 class="text-xl font-bold text-white mb-2">${t.popularLevels.split(' ')[0]}</h2>
+              <p class="text-xs text-slate-400">${t.popularDesc}</p>
             </a>
 
             <a href="#/destacados" class="gd-card p-6 rounded-2xl flex flex-col items-center text-center group">
               <div class="w-16 h-16 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 mb-4 group-hover:scale-110 transition">
                 <i data-lucide="star" class="w-8 h-8"></i>
               </div>
-              <h2 class="text-xl font-bold text-white mb-2">Destacados</h2>
-              <p class="text-xs text-slate-400">Joyas seleccionadas de la comunidad por su alta calidad.</p>
+              <h2 class="text-xl font-bold text-white mb-2">${t.featuredLevels.split(' ')[0]}</h2>
+              <p class="text-xs text-slate-400">${t.featuredDesc}</p>
             </a>
           </div>
         `;
@@ -240,36 +261,36 @@
       } else if (hash === '#/recientes') {
         app.innerHTML = `
           <div class="flex items-center justify-between mb-6">
-            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← Volver al Menú</a>
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← ${t.mainMenu}</a>
             <h1 class="text-2xl font-black text-cyan-400">${t.recentLevels}</h1>
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Cargando niveles...</p>
+            <p class="text-slate-400 text-sm">Cargando...</p>
           </div>
         `;
         cargarNivelesPorFiltro('recientes');
       } else if (hash === '#/populares') {
         app.innerHTML = `
           <div class="flex items-center justify-between mb-6">
-            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← Volver al Menú</a>
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← ${t.mainMenu}</a>
             <h1 class="text-2xl font-black text-green-400">${t.popularLevels}</h1>
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Cargando niveles...</p>
+            <p class="text-slate-400 text-sm">Cargando...</p>
           </div>
         `;
         cargarNivelesPorFiltro('populares');
       } else if (hash === '#/destacados') {
         app.innerHTML = `
           <div class="flex items-center justify-between mb-6">
-            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← Volver al Menú</a>
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← ${t.mainMenu}</a>
             <h1 class="text-2xl font-black text-yellow-400">${t.featuredLevels}</h1>
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Cargando niveles...</p>
+            <p class="text-slate-400 text-sm">Cargando...</p>
           </div>
         `;
         cargarNivelesPorFiltro('destacados');
@@ -362,8 +383,8 @@
             ` : `
               <button onclick="iniciarSesion()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500 text-white mb-3">${t.enterBtn}</button>
               <div class="flex justify-between text-xs text-slate-400 border-t border-slate-800 pt-3">
-                <button onclick="recuperarPassword()" class="hover:text-cyan-400 transition">¿Olvidaste tu contraseña?</button>
-                <button onclick="reenviarVerificacion()" class="hover:text-cyan-400 transition">Reenviar correo</button>
+                <button onclick="recuperarPassword()" class="hover:text-cyan-400 transition">${t.forgotPass}</button>
+                <button onclick="reenviarVerificacion()" class="hover:text-cyan-400 transition">${t.resendEmail}</button>
               </div>
             `}
           </div>
@@ -376,6 +397,7 @@
       const container = document.getElementById('home-user-header');
       if (!container) return;
       const user = auth.currentUser;
+      const t = translations[currentLang];
       if (user) {
         try {
           const docUser = await db.collection("usuarios").doc(user.uid).get();
@@ -386,11 +408,11 @@
                 <div class="flex items-center gap-3">
                   <img src="${u.avatar || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border-2 border-cyan-400">
                   <div>
-                    <p class="text-xs text-slate-400 font-semibold">¡Bienvenido de vuelta!</p>
+                    <p class="text-xs text-slate-400 font-semibold">${t.welcomeBack}</p>
                     <h2 class="text-lg font-black text-white">${u.username || 'Usuario'}</h2>
                   </div>
                 </div>
-                <a href="#/perfil/${user.uid}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold rounded-xl text-xs border border-slate-700 transition">Ver mi perfil</a>
+                <a href="#/perfil/${user.uid}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold rounded-xl text-xs border border-slate-700 transition">${t.viewProfile}</a>
               </div>
             `;
           }
@@ -401,10 +423,10 @@
         container.innerHTML = `
           <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
             <div>
-              <h2 class="text-lg font-black text-white mb-1">¡Comparte tus niveles de Geometry Dash!</h2>
-              <p class="text-xs text-slate-300">Inicia sesión o regístrate para subir tus archivos .gdlvl y gestionar tus creaciones gratis.</p>
+              <h2 class="text-lg font-black text-white mb-1">${t.heroTitle}</h2>
+              <p class="text-xs text-slate-300">${t.heroDesc}</p>
             </div>
-            <a href="#/login" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs whitespace-nowrap transition shadow">Iniciar Sesión</a>
+            <a href="#/login" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs whitespace-nowrap transition shadow">${t.login}</a>
           </div>
         `;
       }
@@ -453,7 +475,7 @@
         if (userDoc.exists) {
           const u = userDoc.data();
           if (u.bloqueoSubidaHasta && new Date(u.bloqueoSubidaHasta.toDate()) > new Date()) {
-            alert(`🚫 Tienes el privilegio de subir niveles bloqueado hasta: ${u.bloqueoSubidaHasta.toDate().toLocaleString()}`);
+            alert(`🚫 Tienes la subida bloqueada hasta: ${u.bloqueoSubidaHasta.toDate().toLocaleString()}`);
             return;
           }
         }
@@ -465,7 +487,7 @@
             const tiempoTranscurrido = (new Date() - datosUltimo.fecha.toDate()) / 1000;
             if (tiempoTranscurrido < 120) {
               const segundosRestantes = Math.ceil(120 - tiempoTranscurrido);
-              alert(`⏳ Por favor espera ${segundosRestantes} segundos antes de subir otro nivel para evitar sobrecargar el servidor.`);
+              alert(`⏳ Por favor espera ${segundosRestantes} segundos antes de subir otro nivel.`);
               return;
             }
           }
@@ -524,7 +546,7 @@
 
       query.get().then((snapshot) => {
         if (snapshot.empty) {
-          grid.innerHTML = `<p class="text-slate-400 text-sm">No hay niveles en esta categoría todavía.</p>`;
+          grid.innerHTML = `<p class="text-slate-400 text-sm">No hay niveles aquí todavía.</p>`;
           return;
         }
         grid.innerHTML = "";
@@ -569,7 +591,7 @@
           `;
         });
       }).catch(err => {
-        grid.innerHTML = `<p class="text-amber-400 text-xs">Cargando elementos de la base de datos...</p>`;
+        grid.innerHTML = `<p class="text-amber-400 text-xs">Cargando elementos...</p>`;
       });
     }
 
@@ -596,7 +618,7 @@
           </div>
           <form onsubmit="actualizarNivelBase64(event, '${idNivel}')" class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Nombre del Nivel</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Nombre</label>
               <input type="text" id="edit-nombre-nivel" value="${n.nombre}" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400">
             </div>
             <div>
@@ -615,7 +637,7 @@
               <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Archivo .gdlvl (Opcional)</label>
               <input type="file" id="edit-input-archivo" accept=".gdlvl" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
             </div>
-            <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-white text-sm">Guardar Cambios del Nivel</button>
+            <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-white text-sm">Guardar Cambios</button>
           </form>
         </div>
       `;
@@ -659,7 +681,7 @@
     }
 
     function eliminarNivel(idNivel) {
-      if (confirm("⚠️ ¿Estás seguro de que deseas eliminar este nivel?")) {
+      if (confirm("⚠️ ¿Estás seguro de eliminar este nivel?")) {
         db.collection("niveles").doc(idNivel).delete().then(() => {
           window.location.reload();
         });
@@ -684,7 +706,7 @@
                   <img src="${u.avatar || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full object-cover border border-cyan-400">
                   <div>
                     <h3 class="font-bold text-white">${u.username}</h3>
-                    <p class="text-xs text-slate-400">${u.bio || 'Creador de GD'}</p>
+                    <p class="text-xs text-slate-400">${u.bio || 'Creador'}</p>
                   </div>
                 </div>
                 <a href="#/perfil/${doc.id}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs">Ver Perfil</a>
@@ -693,7 +715,7 @@
           }
         });
         if (encontrados === 0) {
-          contenedor.innerHTML = `<p class="text-slate-400 text-sm">No se encontraron usuarios con ese nombre.</p>`;
+          contenedor.innerHTML = `<p class="text-slate-400 text-sm">No se encontraron usuarios.</p>`;
         }
       });
     }
@@ -709,16 +731,10 @@
       }
       const u = docUser.data();
       const esMiPerfil = currentUser && currentUser.uid === uid;
-      
-      let fechaFormateada = "Recientemente";
-      if (u.creado) {
-        const f = u.creado.toDate();
-        fechaFormateada = `${f.getDate()}/${f.getMonth() + 1}/${f.getFullYear()}`;
-      }
 
       app.innerHTML = `
         <div class="mb-4">
-          <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">← Volver al Menú Principal</a>
+          <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">← Menú Principal</a>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
           <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400">
@@ -727,8 +743,7 @@
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
               <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">Creador</span>
             </div>
-            <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || 'Sin descripción todavía.'}</p>
-            <p class="text-xs text-slate-500 font-mono">🗓️ Se unió el: ${fechaFormateada}</p>
+            <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || 'Sin descripción.'}</p>
           </div>
           ${esMiPerfil ? `
             <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">✏️ Editar Perfil</button>
@@ -736,7 +751,7 @@
         </div>
 
         <div id="editar-perfil-box" class="hidden bg-slate-900 border border-cyan-500/50 p-6 rounded-xl mb-6">
-          <h3 class="text-lg font-bold text-cyan-400 mb-4">Editar información de perfil</h3>
+          <h3 class="text-lg font-bold text-cyan-400 mb-4">Editar mi perfil</h3>
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Biografía</label>
@@ -752,16 +767,6 @@
             </div>
           </div>
         </div>
-
-        ${currentUser && !esMiPerfil ? `
-          <div class="bg-red-950/30 border border-red-500/40 p-4 rounded-xl mb-6">
-            <h3 class="text-sm font-bold text-red-400 mb-2">🛡️ Panel de Moderación de Usuario</h3>
-            <div class="flex flex-wrap gap-2">
-              <button onclick="bloquearSubida('${uid}', 3)" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold">Bloquear Subida (3 Días)</button>
-              <button onclick="banearUsuario('${uid}', 'perma')" class="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs font-bold">Baneo PERMANENTE</button>
-            </div>
-          </div>
-        ` : ''}
 
         <h2 class="text-xl font-bold text-cyan-400 mb-4">Niveles Públicos del Creador</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-perfil-niveles">
@@ -817,25 +822,7 @@
       window.location.reload();
     }
 
-    async function bloquearSubida(uid, dias) {
-      const fechaBloqueo = new Date();
-      fechaBloqueo.setDate(fechaBloqueo.getDate() + dias);
-      await db.collection("usuarios").doc(uid).update({
-        bloqueoSubidaHasta: firebase.firestore.Timestamp.fromDate(fechaBloqueo)
-      });
-      alert(`⚠️ Subida de niveles bloqueada durante ${dias} días a este usuario.`);
-    }
-
-    async function banearUsuario(uid, tipo) {
-      if (confirm("🚨 ¿Estás seguro de asestar un BANEO PERMANENTE?")) {
-        await db.collection("usuarios").doc(uid).update({
-          estadoBaneo: tipo
-        });
-        alert("🔨 Usuario baneado permanentemente.");
-        window.location.hash = '#/';
-      }
-    }
-
+    // FUNCIÓN DE INICIO DE SESIÓN CORREGIDA
     function iniciarSesion() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
@@ -846,20 +833,17 @@
       }
 
       auth.signInWithEmailAndPassword(email, pass)
-        .then(async cred => {
-          const user = cred.user;
-          
-          if (!user.emailVerified) {
+        .then(cred => {
+          if (!cred.user.emailVerified) {
             auth.signOut();
-            mostrarErrorAuth("⚠️ Debes verificar tu correo electrónico antes de entrar. Revisa tu bandeja de entrada o spam.");
+            mostrarErrorAuth("⚠️ Debes verificar tu correo electrónico antes de entrar.");
             return;
           }
-
           window.location.hash = '#/';
         })
         .catch(err => {
           let msg = err.message;
-          if (err.code === 'auth/invalid-email') msg = "El formato del correo electrónico no es válido.";
+          if (err.code === 'auth/invalid-email') msg = "El correo electrónico no es válido.";
           if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Correo o contraseña incorrectos.";
           mostrarErrorAuth("❌ " + msg);
         });
@@ -920,7 +904,7 @@
     function recuperarPassword() {
       const email = document.getElementById('login-email').value.trim();
       if (!email || !email.includes('@')) {
-        mostrarErrorAuth("⚠️ Escribe tu correo electrónico en la casilla de arriba para enviarte el enlace de recuperación.");
+        mostrarErrorAuth("⚠️ Escribe tu correo electrónico arriba para enviarte el enlace.");
         return;
       }
       auth.sendPasswordResetEmail(email)
@@ -945,7 +929,7 @@
         .then(async cred => {
           await cred.user.sendEmailVerification();
           auth.signOut();
-          mostrarExitoAuth("📧 Correo de verificación reenviado con éxito.");
+          mostrarExitoAuth("📧 Correo de verificación reenviado.");
         })
         .catch(err => {
           mostrarErrorAuth("❌ No se pudo reenviar: " + err.message);
