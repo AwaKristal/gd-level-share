@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.9.2.1</span>
+    VERSION: <span class="text-white font-bold">v1.9.2.2</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -79,9 +79,6 @@
   </div>
 
   <script>
-    // ==========================================
-    // CONFIGURACIÓN DE FIREBASE (API KEY OFUSCADA)
-    // ==========================================
     const _k = ["AIzaSyCrKSQuC", "snPoQR4VrVk6ENq5", "vbLcfdaRGk"];
     const firebaseConfig = {
       apiKey: _k.join(''),
@@ -118,7 +115,7 @@
         forgotPass: "Forgot password?", resendEmail: "Resend email",
         editProfile: "✏️ Edit Profile", creatorBadge: "Creator", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published.",
         loadingText: "Loading...", authorPanel: "Author Panel:", codeLabel: "Code:", visibilityLabel: "Visibility:", backToMenu: "← Main Menu",
-        noDescription: "No description provided for this level."
+        noDescription: "No description provided for this level.", downloads: "Downloads"
       },
       es: {
         home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
@@ -140,7 +137,7 @@
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
         editProfile: "✏️ Editar Perfil", creatorBadge: "Creador", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
-        noDescription: "Este nivel no tiene descripción proporcionada."
+        noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas"
       }
     };
 
@@ -155,19 +152,6 @@
           const docUser = await db.collection("usuarios").doc(user.uid).get();
           if (docUser.exists) {
             const u = docUser.data();
-
-            if (u.estadoBaneo === 'perma') {
-              document.body.innerHTML = `
-                <div class="min-h-screen bg-red-950 flex flex-col items-center justify-center p-6 text-center">
-                  <h1 class="text-4xl font-black text-red-500 mb-4">⛔ BANNED ACCOUNT</h1>
-                </div>
-              `;
-              await db.collection("usuarios").doc(user.uid).delete();
-              await user.delete();
-              setTimeout(() => { window.location.reload(); }, 3500);
-              return;
-            }
-
             const avatar = u.avatar || 'https://via.placeholder.com/40';
             const username = u.username || user.displayName || 'User';
             authContainer.innerHTML = `
@@ -473,6 +457,7 @@
           archivo: gdlvlBase64,
           likes: 0,
           dislikes: 0,
+          descargas: 0,
           isFeatured: false,
           fecha: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -484,7 +469,6 @@
       }
     }
 
-    // CONSULTA FLEXIBLE Y SEGURA (EVITA BLOQUEOS POR ÍNDICES O FECHAS)
     function cargarNivelesPorFiltro(tipo) {
       const grid = document.getElementById('grid-niveles');
       if (!grid) return;
@@ -500,7 +484,6 @@
           listaNiveles.push({ id: doc.id, ...doc.data() });
         });
 
-        // Ordenamiento seguro en memoria del cliente
         if (tipo === 'recientes') {
           listaNiveles.sort((a, b) => {
             const fechaA = a.fecha && a.fecha.toDate ? a.fecha.toDate() : new Date(0);
@@ -520,58 +503,106 @@
 
         grid.innerHTML = "";
         listaNiveles.forEach((n) => {
-          const docId = n.id;
-          const user = auth.currentUser;
-          const esAutor = user && user.uid === n.uid;
-          const t = translations[currentLang];
-
-          let fechaStr = "Unknown date";
-          if (n.fecha && typeof n.fecha.toDate === 'function') {
-            fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
-              year: 'numeric', month: 'short', day: 'numeric'
-            });
-          }
-
-          grid.innerHTML += `
-            <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
-              <div>
-                <a href="#/nivel/${docId}">
-                  <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700 hover:opacity-90 transition">
-                  <h3 class="font-bold text-lg text-white mb-1 hover:text-cyan-400 transition">${n.nombre}</h3>
-                </a>
-                <p class="text-xs text-slate-400 mb-1">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
-                <p class="text-xs text-slate-300 mb-2 line-clamp-2">${n.descripcion || ''}</p>
-                <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr}</p>
-                
-                ${esAutor ? `
-                  <div class="bg-slate-900 border border-cyan-500/50 p-2 rounded mb-3 text-xs space-y-2">
-                    <p class="text-cyan-400 font-bold">👑 ${t.authorPanel}</p>
-                    <p class="text-slate-300">${t.codeLabel} <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-400">${t.visibilityLabel}</span>
-                      <select onchange="cambiarVisibilidad('${docId}', this.value)" class="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-700">
-                        <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
-                        <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>Unlisted</option>
-                        <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Private</option>
-                      </select>
-                    </div>
-                    <div class="flex gap-1 pt-1">
-                      <a href="#/editar-nivel/${docId}" class="w-1/2 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-center rounded font-bold text-xs transition">✏️ ${t.editBtn}</a>
-                      <button onclick="eliminarNivel('${docId}')" class="w-1/2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">🗑️ ${t.deleteBtn}</button>
-                    </div>
-                  </div>
-                ` : ''}
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
-                <span class="font-bold text-slate-400">👍 ${n.likes}</span>
-                <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">${t.downloadBtn}</a>
-              </div>
-            </div>
-          `;
+          renderizarTarjetaNivel(n, grid);
         });
       }).catch(err => {
         grid.innerHTML = `<p class="text-amber-400 text-xs">Error loading elements: ${err.message}</p>`;
       });
+    }
+
+    function renderizarTarjetaNivel(n, contenedor) {
+      const docId = n.id;
+      const user = auth.currentUser;
+      const esAutor = user && user.uid === n.uid;
+      const t = translations[currentLang];
+
+      let fechaStr = "Unknown date";
+      if (n.fecha && typeof n.fecha.toDate === 'function') {
+        fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
+      }
+
+      contenedor.innerHTML += `
+        <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between relative">
+          ${n.isFeatured ? '<span class="absolute top-2 right-2 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">⭐ Featured</span>' : ''}
+          <div>
+            <a href="#/nivel/${docId}">
+              <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700 hover:opacity-90 transition">
+              <h3 class="font-bold text-lg text-white mb-1 hover:text-cyan-400 transition">${n.nombre}</h3>
+            </a>
+            <p class="text-xs text-slate-400 mb-1">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
+            <p class="text-xs text-slate-300 mb-2 line-clamp-2">${n.descripcion || ''}</p>
+            <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr} • 📥 ${n.descargas || 0} ${t.downloads}</p>
+            
+            ${esAutor ? `
+              <div class="bg-slate-900 border border-cyan-500/50 p-2 rounded mb-3 text-xs space-y-2">
+                <p class="text-cyan-400 font-bold">👑 ${t.authorPanel}</p>
+                <p class="text-slate-300">${t.codeLabel} <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">${t.visibilityLabel}</span>
+                  <select onchange="cambiarVisibilidad('${docId}', this.value)" class="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-700">
+                    <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
+                    <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>Unlisted</option>
+                    <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Private</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                  <span class="text-slate-400">Featured:</span>
+                  <button onclick="toggleFeatured('${docId}', ${!n.isFeatured})" class="px-2 py-0.5 rounded text-[10px] font-bold ${n.isFeatured ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-300'}">
+                    ${n.isFeatured ? '⭐ Destacado' : '☆ Normal'}
+                  </button>
+                </div>
+                <div class="flex gap-1 pt-1">
+                  <a href="#/editar-nivel/${docId}" class="w-1/2 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-center rounded font-bold text-xs transition">✏️ ${t.editBtn}</a>
+                  <button onclick="eliminarNivel('${docId}')" class="w-1/2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">🗑️ ${t.deleteBtn}</button>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+          <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
+            <div class="flex items-center gap-2">
+              <button onclick="darLike('${docId}', 1)" class="flex items-center gap-1 font-bold text-slate-400 hover:text-green-400 transition">👍 ${n.likes || 0}</button>
+              <button onclick="darLike('${docId}', -1)" class="flex items-center gap-1 font-bold text-slate-400 hover:text-red-400 transition">👎 ${n.dislikes || 0}</button>
+            </div>
+            <a href="${n.archivo}" download="${n.nombre}.gdlvl" onclick="registrarDescarga('${docId}')" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">${t.downloadBtn}</a>
+          </div>
+        </div>
+      `;
+    }
+
+    async function registrarDescarga(idNivel) {
+      const ref = db.collection("niveles").doc(idNivel);
+      const doc = await ref.get();
+      if(doc.exists) {
+        const actual = doc.data().descargas || 0;
+        await ref.update({ descargas: actual + 1 });
+      }
+    }
+
+    async function darLike(idNivel, tipo) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ You must log in to rate levels.");
+        window.location.hash = '#/login';
+        return;
+      }
+      const ref = db.collection("niveles").doc(idNivel);
+      const doc = await ref.get();
+      if(doc.exists) {
+        const d = doc.data();
+        if (tipo === 1) {
+          await ref.update({ likes: (d.likes || 0) + 1 });
+        } else {
+          await ref.update({ dislikes: (d.dislikes || 0) + 1 });
+        }
+        window.location.reload();
+      }
+    }
+
+    async function toggleFeatured(idNivel, estado) {
+      await db.collection("niveles").doc(idNivel).update({ isFeatured: estado });
+      window.location.reload();
     }
 
     async function cargarDetalleNivel(idNivel) {
@@ -597,10 +628,11 @@
           <div class="mb-4">
             <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">${t.backToMenu}</a>
           </div>
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden p-6 shadow-xl">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden p-6 shadow-xl relative">
+            ${n.isFeatured ? '<span class="absolute top-4 right-4 bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-bold px-3 py-1 rounded-full">⭐ Featured Level</span>' : ''}
             <img src="${n.imagen}" class="w-full h-64 object-cover rounded-xl border border-slate-700 mb-4">
             <h1 class="text-3xl font-black text-white mb-2">${n.nombre}</h1>
-            <p class="text-sm text-slate-400 mb-4">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a> • <span class="font-mono text-xs">${fechaStr}</span></p>
+            <p class="text-sm text-slate-400 mb-4">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a> • <span class="font-mono text-xs">${fechaStr}</span> • <span class="font-mono text-xs">📥 ${n.descargas || 0} ${t.downloads}</span></p>
             
             <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl mb-6">
               <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t.levelDesc}</h3>
@@ -608,8 +640,11 @@
             </div>
 
             <div class="flex items-center justify-between border-t border-slate-800 pt-4">
-              <span class="font-bold text-slate-300">👍 ${n.likes} Likes</span>
-              <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-white text-sm shadow">${t.downloadBtn} .gdlvl</a>
+              <div class="flex items-center gap-3">
+                <button onclick="darLike('${idNivel}', 1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-green-400 border border-slate-700 transition">👍 ${n.likes || 0}</button>
+                <button onclick="darLike('${idNivel}', -1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-red-400 border border-slate-700 transition">👎 ${n.dislikes || 0}</button>
+              </div>
+              <a href="${n.archivo}" download="${n.nombre}.gdlvl" onclick="registrarDescarga('${idNivel}')" class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-white text-sm shadow">${t.downloadBtn} .gdlvl</a>
             </div>
           </div>
         </div>
@@ -803,37 +838,20 @@
       `;
 
       const gridNiveles = document.getElementById('grid-perfil-niveles');
-      db.collection("niveles").where("uid", "==", uid).where("visibilidad", "==", "publico").get().then(snapshot => {
+      // Si es tu propio perfil, muestra TODOS tus niveles (incluso privados/nolistados) para que puedas gestionarlos
+      let queryPerfil = db.collection("niveles").where("uid", "==", uid);
+      if (!esMiPerfil) {
+        queryPerfil = queryPerfil.where("visibilidad", "==", "publico");
+      }
+
+      queryPerfil.get().then(snapshot => {
         if (snapshot.empty) {
           gridNiveles.innerHTML = `<p class="text-slate-400 text-sm">${t.noLevelsUser}</p>`;
           return;
         }
         gridNiveles.innerHTML = "";
         snapshot.forEach(docNivel => {
-          const n = docNivel.data();
-          const docId = docNivel.id;
-          let fechaStr = "Unknown date";
-          if (n.fecha && typeof n.fecha.toDate === 'function') {
-            fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
-              year: 'numeric', month: 'short', day: 'numeric'
-            });
-          }
-          gridNiveles.innerHTML += `
-            <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
-              <div>
-                <a href="#/nivel/${docId}">
-                  <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700 hover:opacity-95 transition">
-                  <h3 class="font-bold text-lg text-white mb-1 hover:text-cyan-400 transition">${n.nombre}</h3>
-                </a>
-                <p class="text-xs text-slate-300 mb-2 line-clamp-2">${n.descripcion || ''}</p>
-                <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr}</p>
-              </div>
-              <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
-                <span class="font-bold text-slate-400">👍 ${n.likes}</span>
-                <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">Download</a>
-              </div>
-            </div>
-          `;
+          renderizarTarjetaNivel({ id: docNivel.id, ...docNivel.data() }, gridNiveles);
         });
       });
     }
@@ -988,7 +1006,7 @@
             <div class="gd-card rounded-lg p-4 mt-4 text-left">
               <h3 class="font-bold text-lg text-white">${n.nombre}</h3>
               <p class="text-xs text-slate-400 mb-3">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
-              <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-4 py-2 bg-cyan-600 text-white rounded font-bold text-xs inline-block">Download .gdlvl</a>
+              <a href="${n.archivo}" download="${n.nombre}.gdlvl" onclick="registrarDescarga('${doc.id}')" class="px-4 py-2 bg-cyan-600 text-white rounded font-bold text-xs inline-block">Download .gdlvl</a>
             </div>
           `;
         });
