@@ -18,6 +18,11 @@
     .gd-btn-green:hover { background: #22c55e; }
     .gd-card { background: #161b33; border: 1px solid #2a345e; transition: all 0.2s ease; }
     .gd-card:hover { border-color: #00f0ff; transform: translateY(-2px); }
+    
+    /* Traducción nativa de inputs de archivos */
+    input[type="file"]::file-selector-button {
+      content: attr(data-browse);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative pb-8">
@@ -59,6 +64,18 @@
 
   <!-- CONTENIDO CAMBIANTE -->
   <main class="flex-grow max-w-6xl w-full mx-auto p-4" id="app-content"></main>
+
+  <!-- MODAL DINÁMICO PARA MODERACIÓN (SIN ALERTAS FEAS) -->
+  <div id="mod-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-slate-900 border-2 border-red-500 rounded-xl p-6 max-w-md w-full shadow-2xl relative">
+      <h3 id="mod-modal-title" class="text-lg font-bold text-red-400 mb-3">Moderation Panel</h3>
+      <div id="mod-modal-body" class="space-y-3 mb-4"></div>
+      <div class="flex gap-2">
+        <button id="mod-modal-confirm" class="w-1/2 py-2 bg-red-600 hover:bg-red-500 font-bold rounded text-sm text-white">Confirm</button>
+        <button onclick="cerrarModModal()" class="w-1/2 py-2 bg-slate-800 hover:bg-slate-700 font-bold rounded text-sm text-slate-300">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
@@ -143,7 +160,8 @@
         loadingText: "Loading...", authorPanel: "Author Panel:", codeLabel: "Code:", visibilityLabel: "Visibility:", backToMenu: "← Main Menu",
         noDescription: "No description provided for this level.", downloads: "Downloads",
         followers: "Followers", following: "Following", followBtn: "Follow", unfollowBtn: "Unfollow", hideStats: "Hide Stats",
-        viewFollowing: "👀 View Following List"
+        viewFollowing: "👀 View Following List",
+        browseFile: "Browse...", regSuccessMsg: "Account created successfully! Verification email sent. (Check spam)"
       },
       es: {
         home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
@@ -167,7 +185,8 @@
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
         noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas",
         followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores",
-        viewFollowing: "👀 Ver a quién sigues"
+        viewFollowing: "👀 Ver a quién sigues",
+        browseFile: "Examinar...", regSuccessMsg: "¡Cuenta creada con éxito! Correo de verificación enviado. (Revisa spam)"
       }
     };
 
@@ -366,11 +385,11 @@
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1">${t.imageLabel}</label>
-                <input type="file" id="input-imagen" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+                <input type="file" id="input-imagen" accept="image/*" required data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1">${t.fileLabel}</label>
-                <input type="file" id="input-archivo" accept=".gdlvl" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
+                <input type="file" id="input-archivo" accept=".gdlvl" required data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
               </div>
               <button type="submit" class="w-full py-2 gd-btn-green font-bold rounded text-white text-sm">${t.publishBtn}</button>
             </form>
@@ -433,7 +452,7 @@
               <textarea id="register-bio" placeholder="${t.bioPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none"></textarea>
               <div class="mb-4">
                 <label class="block text-xs font-semibold text-slate-400 mb-1">${t.avatarLabel}</label>
-                <input type="file" id="register-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+                <input type="file" id="register-avatar" accept="image/*" data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
               </div>
               <button onclick="registrarUsuario()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500 text-white">${t.registerBtn}</button>
             ` : `
@@ -752,6 +771,7 @@
 
     async function cargarFormularioEditarNivel(idNivel) {
       const app = document.getElementById('app-content');
+      const t = translations[currentLang];
       const doc = await db.collection("niveles").doc(idNivel).get();
       if (!doc.exists) {
         app.innerHTML = `<p class="text-red-400 text-center py-12">Level not found.</p>`;
@@ -790,11 +810,11 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-400 mb-1">New Image (Optional, Max 1 MB)</label>
-              <input type="file" id="edit-input-imagen" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+              <input type="file" id="edit-input-imagen" accept="image/*" data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-400 mb-1">New .gdlvl File (Optional)</label>
-              <input type="file" id="edit-input-archivo" accept=".gdlvl" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
+              <input type="file" id="edit-input-archivo" accept=".gdlvl" data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
             </div>
             <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-white text-sm">Save Changes</button>
           </form>
@@ -859,11 +879,12 @@
         return;
       }
 
-      if (confirm("⚠️ Are you sure you want to delete this level?")) {
+      abrirModModal("Delete Level", `<p class="text-sm text-slate-300">Are you sure you want to delete this level?</p>`, async () => {
         await docRef.delete();
         mostrarToast("Level deleted successfully.");
+        cerrarModModal();
         window.location.reload();
-      }
+      });
     }
 
     function buscarUsuarios() {
@@ -984,7 +1005,7 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-400 mb-1">New Profile Picture (Max 1MB)</label>
-              <input type="file" id="edit-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+              <input type="file" id="edit-avatar" accept="image/*" data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
             </div>
             <div class="flex gap-2 pt-2">
               <button onclick="guardarCambiosPerfil('${uid}')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold text-xs">Save Changes</button>
@@ -1015,6 +1036,20 @@
           renderizarTarjetaNivel({ id: docNivel.id, ...docNivel.data() }, gridNiveles);
         });
       });
+    }
+
+    function abrirModModal(titulo, htmlContenido, onConfirmar) {
+      document.getElementById('mod-modal-title').innerText = titulo;
+      document.getElementById('mod-modal-body').innerHTML = htmlContenido;
+      const btnConfirm = document.getElementById('mod-modal-confirm');
+      const nuevoBtn = btnConfirm.cloneNode(true);
+      btnConfirm.parentNode.replaceChild(nuevoBtn, btnConfirm);
+      nuevoBtn.addEventListener('click', onConfirmar);
+      document.getElementById('mod-modal').classList.remove('hidden');
+    }
+
+    function cerrarModModal() {
+      document.getElementById('mod-modal').classList.add('hidden');
     }
 
     async function cargarListaSiguiendo(uid) {
@@ -1107,19 +1142,31 @@
         return;
       }
 
-      let motivo = "";
       if (estado) {
-        motivo = prompt("✍️ Enter the reason for blocking this user from uploading levels:", "Inappropriate content or spam");
-        if (motivo === null) return;
+        abrirModModal("Block Level Upload", `
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Reason for blocking:</label>
+          <input type="text" id="motivo-bloqueo" value="Inappropriate content or spam" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400">
+        `, async () => {
+          const motivo = document.getElementById('motivo-bloqueo').value.trim() || "Spam";
+          await db.collection("usuarios").doc(uid).update({ 
+            bloqueadoSubir: true,
+            bloqueadoSubirMotivo: motivo
+          });
+          mostrarToast("User upload blocked successfully.");
+          cerrarModModal();
+          window.location.reload();
+        });
+      } else {
+        abrirModModal("Unblock Level Upload", `<p class="text-sm text-slate-300">Are you sure you want to unblock this user's level uploads?</p>`, async () => {
+          await db.collection("usuarios").doc(uid).update({ 
+            bloqueadoSubir: false,
+            bloqueadoSubirMotivo: ""
+          });
+          mostrarToast("User upload unblocked successfully.");
+          cerrarModModal();
+          window.location.reload();
+        });
       }
-
-      await db.collection("usuarios").doc(uid).update({ 
-        bloqueadoSubir: estado,
-        bloqueadoSubirMotivo: estado ? motivo : ""
-      });
-
-      mostrarToast(`User status updated. Upload blocked: ${estado}`);
-      window.location.reload();
     }
 
     async function gestionarBaneo(uid, estadoActual) {
@@ -1127,43 +1174,64 @@
       if (!user || user.uid !== OWNER_UID) return;
 
       if (estadoActual !== 'ninguno') {
-        if (confirm("¿Deseas levantar el baneo a este usuario?")) {
+        abrirModModal("Lift Ban", `<p class="text-sm text-slate-300">Are you sure you want to lift the ban for this user?</p>`, async () => {
           await db.collection("usuarios").doc(uid).update({
             estadoBaneo: 'ninguno',
             baneoExpira: null,
             baneoMotivo: ''
           });
-          mostrarToast("Baneo levantado con éxito.");
+          mostrarToast("Ban lifted successfully.");
+          cerrarModModal();
           window.location.reload();
-        }
+        });
         return;
       }
 
-      const tipo = prompt("Elige el tipo de baneo:\n1. Escribe 'temp' para Baneo Temporal\n2. Escribe 'perma' para Baneo Permanente", "temp");
-      if (!tipo) return;
+      abrirModModal("Apply Sanction / Ban", `
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Ban Type:</label>
+          <select id="ban-tipo" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-2" onchange="toggleBanDias(this.value)">
+            <option value="temporal">Temporal Ban</option>
+            <option value="perma">Permanent Ban</option>
+          </select>
+        </div>
+        <div id="ban-dias-container">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Duration in Days:</label>
+          <input type="number" id="ban-dias" value="1" min="1" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white mb-2">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Reason:</label>
+          <input type="text" id="ban-motivo" value="Violation of rules" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+        </div>
+      `, async () => {
+        const tipo = document.getElementById('ban-tipo').value;
+        const motivo = document.getElementById('ban-motivo').value.trim() || "Violation of rules";
+        let updateData = {
+          estadoBaneo: tipo,
+          baneoMotivo: motivo
+        };
 
-      const motivo = prompt("✍️ Escribe el motivo del baneo:", "Incumplimiento de normas");
-      if (motivo === null) return;
+        if (tipo === 'temporal') {
+          const dias = parseInt(document.getElementById('ban-dias').value) || 1;
+          const fechaExp = new Date();
+          fechaExp.setDate(fechaExp.getDate() + dias);
+          updateData.baneoExpira = firebase.firestore.Timestamp.fromDate(fechaExp);
+        } else {
+          updateData.baneoExpira = null;
+        }
 
-      let updateData = {
-        estadoBaneo: tipo.toLowerCase() === 'perma' ? 'perma' : 'temporal',
-        baneoMotivo: motivo
-      };
+        await db.collection("usuarios").doc(uid).update(updateData);
+        mostrarToast("Sanction applied successfully.");
+        cerrarModModal();
+        window.location.reload();
+      });
+    }
 
-      if (updateData.estadoBaneo === 'temporal') {
-        const diasStr = prompt("¿Cuántos días durará el baneo temporal?", "1");
-        if (!diasStr) return;
-        const dias = parseInt(diasStr) || 1;
-        const fechaExp = new Date();
-        fechaExp.setDate(fechaExp.getDate() + dias);
-        updateData.baneoExpira = firebase.firestore.Timestamp.fromDate(fechaExp);
-      } else {
-        updateData.baneoExpira = null;
+    function toggleBanDias(val) {
+      const contenedorDias = document.getElementById('ban-dias-container');
+      if (contenedorDias) {
+        contenedorDias.style.display = val === 'temporal' ? 'block' : 'none';
       }
-
-      await db.collection("usuarios").doc(uid).update(updateData);
-      mostrarToast("Sanción aplicada correctamente.");
-      window.location.reload();
     }
 
     function mostrarFormularioEditarPerfil() {
@@ -1194,7 +1262,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (!email || !pass) {
-        mostrarToast("Please fill in all fields.", 'error');
+        mostrarErrorAuth("Please fill in all fields.");
         return;
       }
 
@@ -1202,7 +1270,7 @@
         .then(cred => {
           if (!cred.user.emailVerified) {
             auth.signOut();
-            mostrarToast("You must verify your email before logging in.", 'error');
+            mostrarErrorAuth("You must verify your email before logging in.");
             return;
           }
           window.location.hash = '#/';
@@ -1211,7 +1279,7 @@
           let msg = err.message;
           if (err.code === 'auth/invalid-email') msg = "Invalid email address.";
           if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Incorrect email or password.";
-          mostrarToast(msg, 'error');
+          mostrarErrorAuth(msg);
         });
     }
 
@@ -1221,24 +1289,25 @@
       const pass = document.getElementById('login-pass').value;
       const bio = document.getElementById('register-bio').value.trim();
       const avatarFile = document.getElementById('register-avatar').files[0];
+      const t = translations[currentLang];
 
       if (!username) {
-        mostrarToast("You must enter a username.", 'error');
+        mostrarErrorAuth("You must enter a username.");
         return;
       }
       if (!email || !email.includes('@')) {
-        mostrarToast("Enter a valid email address.", 'error');
+        mostrarErrorAuth("Enter a valid email address.");
         return;
       }
       if (!pass || pass.length < 6) {
-        mostrarToast("Password must be at least 6 characters long.", 'error');
+        mostrarErrorAuth("Password must be at least 6 characters long.");
         return;
       }
 
       let avatarBase64 = "";
       if (avatarFile) {
         if (avatarFile.size > 1024 * 1024) {
-          mostrarToast("Profile picture exceeds 1 MB.", 'error');
+          mostrarErrorAuth("Profile picture exceeds 1 MB.");
           return;
         }
         avatarBase64 = await leerComoBase64(avatarFile);
@@ -1262,27 +1331,27 @@
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        mostrarToast("Account created successfully! Verification email sent.");
+        mostrarExitoAuth(t.regSuccessMsg);
         auth.signOut();
       } catch (err) {
         let msg = err.message;
         if (err.code === 'auth/email-already-in-use') msg = "This email is already registered.";
-        mostrarToast(msg, 'error');
+        mostrarErrorAuth(msg);
       }
     }
 
     function recuperarPassword() {
       const email = document.getElementById('login-email').value.trim();
       if (!email || !email.includes('@')) {
-        mostrarToast("Enter your email above to send you the reset link.", 'error');
+        mostrarErrorAuth("Enter your email above to send you the reset link.");
         return;
       }
       auth.sendPasswordResetEmail(email)
         .then(() => {
-          mostrarToast("Password reset email sent.");
+          mostrarExitoAuth("Password reset email sent.");
         })
         .catch(err => {
-          mostrarToast("Error: " + err.message, 'error');
+          mostrarErrorAuth("Error: " + err.message);
         });
     }
 
@@ -1291,7 +1360,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (!email || !pass) {
-        mostrarToast("Enter your email and password first to resend.", 'error');
+        mostrarErrorAuth("Enter your email and password first to resend.");
         return;
       }
 
@@ -1299,10 +1368,10 @@
         .then(async cred => {
           await cred.user.sendEmailVerification();
           auth.signOut();
-          mostrarToast("Verification email resent.");
+          mostrarExitoAuth("Verification email resent.");
         })
         .catch(err => {
-          mostrarToast("Could not resend: " + err.message, 'error');
+          mostrarErrorAuth("Could not resend: " + err.message);
         });
     }
 
@@ -1321,6 +1390,14 @@
           renderizarTarjetaNivel({ id: doc.id, ...doc.data() }, contenedor);
         });
       });
+    }
+
+    function mostrarErrorAuth(mensaje) {
+      mostrarToast(mensaje, 'error');
+    }
+
+    function mostrarExitoAuth(mensaje) {
+      mostrarToast(mensaje, 'success');
     }
   </script>
 </body>
