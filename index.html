@@ -11,7 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <!-- Script de Google reCAPTCHA API -->
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
 
   <style>
     body { background-color: #0c0f1d; color: #e2e8f0; font-family: system-ui, sans-serif; }
@@ -81,7 +81,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.3.5.0</span>
+    VERSION: <span class="text-white font-bold">v1.3.5.1</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -107,8 +107,28 @@
   </div>
 
   <script>
-    // Clave del sitio ReCaptcha
-    const RECAPTCHA_SITE_KEY = "6Lex8BMuAAAAAPx6P5c7RwFUNi_9dpZPX0hw_Il9";
+    // Clave del sitio pública de reCAPTCHA v2 (reemplázala por tu clave propia si es necesario)
+    const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+
+    let recaptchaWidgetId = null;
+
+    function onloadCallback() {
+      renderizarCaptchaSeguro();
+    }
+
+    function renderizarCaptchaSeguro() {
+      const contenedor = document.getElementById('recaptcha-container');
+      if (contenedor && window.grecaptcha && window.grecaptcha.render) {
+        contenedor.innerHTML = ""; // Limpiar antes de re-renderizar
+        try {
+          recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
+            'sitekey': RECAPTCHA_SITE_KEY
+          });
+        } catch (e) {
+          console.error("Error al renderizar reCAPTCHA:", e);
+        }
+      }
+    }
 
     const _k = ["AIzaSyCrKSQuC", "snPoQR4VrVk6ENq5", "vbLcfdaRGk"];
     const firebaseConfig = {
@@ -187,7 +207,7 @@
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Editar Perfil", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
+        editProfile: "✏️ Edit Profile", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
         noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas",
         followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores",
@@ -405,16 +425,16 @@
                 <input type="file" id="input-archivo" accept=".gdlvl" required data-browse="${t.browseFile}" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
               </div>
 
-              <!-- RECAPTCHA V2 EN SUBIDA DE NIVEL -->
+              <!-- CONTENEDOR RECAPTCHA V2 -->
               <div class="flex justify-center my-2">
-                <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}"></div>
+                <div id="recaptcha-container"></div>
               </div>
 
               <button type="submit" class="w-full py-2 gd-btn-green font-bold rounded text-white text-sm">${t.publishBtn}</button>
             </form>
           </div>
         `;
-        setTimeout(() => { if (window.grecaptcha) window.grecaptcha.render(); }, 100);
+        renderizarCaptchaSeguro();
       } else if (hash.startsWith('#/nivel/')) {
         const idNivel = hash.split('/')[2];
         cargarDetalleNivel(idNivel);
@@ -481,9 +501,9 @@
               </div>
             ` : ''}
 
-            <!-- RECAPTCHA V2 EN AUTH -->
+            <!-- CONTENEDOR RECAPTCHA V2 -->
             <div class="flex justify-center my-3">
-              <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}"></div>
+              <div id="recaptcha-container"></div>
             </div>
 
             ${esRegistro ? `
@@ -497,7 +517,7 @@
             `}
           </div>
         `;
-        setTimeout(() => { if (window.grecaptcha) window.grecaptcha.render(); }, 100);
+        renderizarCaptchaSeguro();
       }
       lucide.createIcons();
     }
@@ -523,7 +543,7 @@
       }
 
       // Validar Captcha
-      const captchaResponse = grecaptcha.getResponse();
+      const captchaResponse = grecaptcha.getResponse(recaptchaWidgetId);
       if (!captchaResponse) {
         mostrarToast(t.captchaErr, 'error');
         return;
@@ -572,11 +592,11 @@
           fecha: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        grecaptcha.reset();
+        grecaptcha.reset(recaptchaWidgetId);
         mostrarToast("Level successfully uploaded!");
         window.location.hash = '#/';
       } catch (err) {
-        grecaptcha.reset();
+        grecaptcha.reset(recaptchaWidgetId);
         mostrarToast("Error uploading level: " + err.message, 'error');
       }
     }
@@ -1315,7 +1335,7 @@
       }
 
       // Validar Captcha
-      const captchaResponse = grecaptcha.getResponse();
+      const captchaResponse = grecaptcha.getResponse(recaptchaWidgetId);
       if (!captchaResponse) {
         mostrarErrorAuth(t.captchaErr);
         return;
@@ -1325,15 +1345,15 @@
         .then(cred => {
           if (!cred.user.emailVerified) {
             auth.signOut();
-            grecaptcha.reset();
+            grecaptcha.reset(recaptchaWidgetId);
             mostrarErrorAuth("You must verify your email before logging in.");
             return;
           }
-          grecaptcha.reset();
+          grecaptcha.reset(recaptchaWidgetId);
           window.location.hash = '#/';
         })
         .catch(err => {
-          grecaptcha.reset();
+          grecaptcha.reset(recaptchaWidgetId);
           let msg = err.message;
           if (err.code === 'auth/invalid-email') msg = "Invalid email address.";
           if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Incorrect email or password.";
@@ -1363,7 +1383,7 @@
       }
 
       // Validar Captcha
-      const captchaResponse = grecaptcha.getResponse();
+      const captchaResponse = grecaptcha.getResponse(recaptchaWidgetId);
       if (!captchaResponse) {
         mostrarErrorAuth(t.captchaErr);
         return;
@@ -1396,11 +1416,11 @@
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        grecaptcha.reset();
+        grecaptcha.reset(recaptchaWidgetId);
         mostrarExitoAuth(t.regSuccessMsg);
         auth.signOut();
       } catch (err) {
-        grecaptcha.reset();
+        grecaptcha.reset(recaptchaWidgetId);
         let msg = err.message;
         if (err.code === 'auth/email-already-in-use') msg = "This email is already registered.";
         mostrarErrorAuth(msg);
