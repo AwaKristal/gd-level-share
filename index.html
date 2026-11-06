@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.9.2.4</span>
+    VERSION: <span class="text-white font-bold">v1.9.2.6</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -101,7 +101,7 @@
         home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
         infoTitle: "What is this site for?",
         infoDesc: "This platform is built to share .gdlvl level files directly with friends without having to upload them to the official Geometry Dash servers.",
-        infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because YOU decided to upload and share it here.",
+        infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because <strong>YOU decided to upload and share it here</strong>.",
         infoBtn: "Got it",
         mainMenu: "Main Menu",
         recentLevels: "Recent Levels (Public)", popularLevels: "Most Popular Levels", featuredLevels: "Featured Levels",
@@ -154,6 +154,31 @@
           const docUser = await db.collection("usuarios").doc(user.uid).get();
           if (docUser.exists) {
             const u = docUser.data();
+
+            // Verificar si tiene baneo temporal expirado
+            if (u.estadoBaneo === 'temporal' && u.baneoExpira && u.baneoExpira.toDate() < new Date()) {
+              await db.collection("usuarios").doc(user.uid).update({
+                estadoBaneo: 'ninguno',
+                baneoExpira: null,
+                baneoMotivo: ''
+              });
+              u.estadoBaneo = 'ninguno';
+            }
+
+            if (u.estadoBaneo === 'perma' || (u.estadoBaneo === 'temporal' && u.baneoExpira && u.baneoExpira.toDate() > new Date())) {
+              const motivoStr = u.baneoMotivo || 'Sin motivo especificado';
+              const tiempoStr = u.estadoBaneo === 'temporal' ? `Expira: ${u.baneoExpira.toDate().toLocaleString()}` : 'Permanente';
+              document.body.innerHTML = `
+                <div class="min-h-screen bg-red-950 flex flex-col items-center justify-center p-6 text-center">
+                  <h1 class="text-4xl font-black text-red-500 mb-2">⛔ BANNED ACCOUNT</h1>
+                  <p class="text-white text-sm mb-1">Tipo: <span class="font-bold uppercase">${u.estadoBaneo}</span></p>
+                  <p class="text-red-300 text-sm mb-4">Motivo: "${motivoStr}"</p>
+                  <p class="text-slate-400 text-xs">${tiempoStr}</p>
+                </div>
+              `;
+              return;
+            }
+
             const avatar = u.avatar || 'https://via.placeholder.com/40';
             const username = u.username || user.displayName || 'User';
             authContainer.innerHTML = `
@@ -431,9 +456,12 @@
 
       try {
         const docUserRef = await db.collection("usuarios").doc(user.uid).get();
-        if (docUserRef.exists && docUserRef.data().bloqueadoSubir) {
-          alert("❌ Your account is blocked from uploading levels.");
-          return;
+        if (docUserRef.exists) {
+          const uData = docUserRef.data();
+          if (uData.bloqueadoSubir) {
+            alert(`❌ Your account is blocked from uploading levels.\nReason: ${uData.bloqueadoSubirMotivo || 'No reason provided.'}`);
+            return;
+          }
         }
 
         const nombre = document.getElementById('nombre-nivel').value;
@@ -800,11 +828,28 @@
       });
     }
 
-    function eliminarNivel(idNivel) {
+    async function eliminarNivel(idNivel) {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const docRef = db.collection("niveles").doc(idNivel);
+      const docSnap = await docRef.get();
+      if (!docSnap.exists) return;
+
+      const nivelData = docSnap.data();
+      const esOwner = user.uid === OWNER_UID;
+      const esAutor = user.uid === nivelData.uid;
+
+      // Restricción estricta: solo el autor o el owner pueden borrar
+      if (!esAutor && !esOwner) {
+        alert("❌ You can only delete your own levels.");
+        return;
+      }
+
       if (confirm("⚠️ Are you sure you want to delete this level?")) {
-        db.collection("niveles").doc(idNivel).delete().then(() => {
-          window.location.reload();
-        });
+        await docRef.delete();
+        alert("✅ Level deleted successfully.");
+        window.location.reload();
       }
     }
 
@@ -865,15 +910,22 @@
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
             </div>
             <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || t.noBio}</p>
+            ${u.bloqueadoSubir ? `<p class="text-xs text-amber-400 font-bold mt-1">⚠️ Bloqueado para subir niveles. Motivo: ${u.bloqueadoSubirMotivo || 'Sin motivo'}</p>` : ''}
+            ${u.estadoBaneo && u.estadoBaneo !== 'ninguno' ? `<p class="text-xs text-red-400 font-bold mt-1">⛔ Estado de Baneo: <span class="uppercase">${u.estadoBaneo}</span>. Motivo: ${u.baneoMotivo || 'Sin motivo'}</p>` : ''}
           </div>
           <div class="flex flex-col gap-2">
             ${esMiPerfil ? `
               <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">${t.editProfile}</button>
             ` : ''}
             ${esOwner && !esMiPerfil ? `
-              <button onclick="toggleBloqueoSubir('${uid}', ${!u.bloqueadoSubir})" class="px-4 py-2 bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800 rounded-xl text-xs font-bold transition">
-                ${u.bloqueadoSubir ? '🔓 Permitir Subir Niveles' : '🔒 Bloquear Subir Niveles'}
-              </button>
+              <div class="flex flex-col gap-1.5">
+                <button onclick="toggleBloqueoSubir('${uid}', ${!u.bloqueadoSubir})" class="px-4 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-xl text-xs font-bold transition">
+                  ${u.bloqueadoSubir ? '🔓 Desbloquear Subir Niveles' : '🔒 Bloquear Subir Niveles'}
+                </button>
+                <button onclick="gestionarBaneo('${uid}', '${u.estadoBaneo || 'ninguno'}')" class="px-4 py-1.5 bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800 rounded-xl text-xs font-bold transition">
+                  ${u.estadoBaneo && u.estadoBaneo !== 'ninguno' ? '✨ Quitar Baneo' : '⛔ Aplicar Baneo (Temp/Perm)'}
+                </button>
+              </div>
             ` : ''}
           </div>
         </div>
@@ -926,8 +978,63 @@
         alert("❌ Unauthorized action.");
         return;
       }
-      await db.collection("usuarios").doc(uid).update({ bloqueadoSubir: estado });
+
+      let motivo = "";
+      if (estado) {
+        motivo = prompt("✍️ Enter the reason for blocking this user from uploading levels:", "Inappropriate content or spam");
+        if (motivo === null) return;
+      }
+
+      await db.collection("usuarios").doc(uid).update({ 
+        bloqueadoSubir: estado,
+        bloqueadoSubirMotivo: estado ? motivo : ""
+      });
+
       alert(`✅ User status updated. Upload blocked: ${estado}`);
+      window.location.reload();
+    }
+
+    async function gestionarBaneo(uid, estadoActual) {
+      const user = auth.currentUser;
+      if (!user || user.uid !== OWNER_UID) return;
+
+      if (estadoActual !== 'ninguno') {
+        if (confirm("¿Deseas levantar el baneo a este usuario?")) {
+          await db.collection("usuarios").doc(uid).update({
+            estadoBaneo: 'ninguno',
+            baneoExpira: null,
+            baneoMotivo: ''
+          });
+          alert("✅ Baneo levantado con éxito.");
+          window.location.reload();
+        }
+        return;
+      }
+
+      const tipo = prompt("Elige el tipo de baneo:\n1. Escribe 'temp' para Baneo Temporal\n2. Escribe 'perma' para Baneo Permanente", "temp");
+      if (!tipo) return;
+
+      const motivo = prompt("✍️ Escribe el motivo del baneo:", "Incumplimiento de normas");
+      if (motivo === null) return;
+
+      let updateData = {
+        estadoBaneo: tipo.toLowerCase() === 'perma' ? 'perma' : 'temporal',
+        baneoMotivo: motivo
+      };
+
+      if (updateData.estadoBaneo === 'temporal') {
+        const diasStr = prompt("¿Cuántos días durará el baneo temporal?", "1");
+        if (!diasStr) return;
+        const dias = parseInt(diasStr) || 1;
+        const fechaExp = new Date();
+        fechaExp.setDate(fechaExp.getDate() + dias);
+        updateData.baneoExpira = firebase.firestore.Timestamp.fromDate(fechaExp);
+      } else {
+        updateData.baneoExpira = null;
+      }
+
+      await db.collection("usuarios").doc(uid).update(updateData);
+      alert("✅ Sanción aplicada correctamente.");
       window.location.reload();
     }
 
@@ -1020,6 +1127,9 @@
           bio: bio || 'Hello! I am a user on GD Level Share.',
           avatar: avatarBase64,
           bloqueadoSubir: false,
+          bloqueadoSubirMotivo: "",
+          estadoBaneo: "ninguno",
+          baneoMotivo: "",
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
