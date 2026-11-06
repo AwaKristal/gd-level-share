@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,20 +29,20 @@
         <i data-lucide="square"></i> GD LEVEL SHARE
       </a>
       <nav class="hidden md:flex items-center gap-6 font-semibold text-sm">
-        <a href="#/" class="hover:text-cyan-400 transition" id="nav-home">Inicio</a>
-        <a href="#/buscar-codigo" class="hover:text-cyan-400 transition" id="nav-code">Buscar Código</a>
-        <a href="#/buscar-usuarios" class="hover:text-cyan-400 transition" id="nav-users">Buscar Usuarios</a>
+        <a href="#/" class="hover:text-cyan-400 transition" id="nav-home">Home</a>
+        <a href="#/buscar-codigo" class="hover:text-cyan-400 transition" id="nav-code">Search Code</a>
+        <a href="#/buscar-usuarios" class="hover:text-cyan-400 transition" id="nav-users">Search Users</a>
       </nav>
       <div class="flex items-center gap-3">
-        <button onclick="toggleInfoModal()" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-cyan-400" title="Información">
+        <button onclick="toggleInfoModal()" class="p-2 rounded bg-slate-800 hover:bg-slate-700 text-cyan-400" title="Information">
           <i data-lucide="help-circle" class="w-5 h-5"></i>
         </button>
         <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 text-xs px-2 py-1.5 rounded border border-slate-700 font-semibold cursor-pointer">
-          <option value="es">ES 🇪🇸</option>
           <option value="en">EN 🇺🇸</option>
+          <option value="es">ES 🇪🇸</option>
         </select>
         <div id="auth-nav-container">
-          <a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">Iniciar Sesión</a>
+          <a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">Login</a>
         </div>
       </div>
     </div>
@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.9.1.0</span>
+    VERSION: <span class="text-white font-bold">v1.9.1.1</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -64,16 +64,16 @@
       </button>
       <div class="flex items-center gap-3 mb-4 text-cyan-400">
         <i data-lucide="info" class="w-8 h-8"></i>
-        <h3 class="text-xl font-bold" id="info-title">¿Para qué sirve esta página?</h3>
+        <h3 class="text-xl font-bold" id="info-title">What is this site for?</h3>
       </div>
       <p class="text-slate-300 text-sm leading-relaxed mb-3" id="info-desc">
-        Esta plataforma está hecha para compartir archivos de nivel <strong>.gdlvl</strong> directamente entre amigos sin tener que subirlos a los servidores oficiales de Geometry Dash.
+        This platform is built to share <strong>.gdlvl</strong> level files directly with friends without having to upload them to the official Geometry Dash servers.
       </p>
       <div class="bg-red-950/40 border border-red-500/40 p-3 rounded text-xs text-red-300 mb-4" id="info-warning">
-        ⚠️ <strong>Aviso legal:</strong> No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que <strong>tú eres el único que decide subirlo y exponerlo aquí</strong>.
+        ⚠️ <strong>Disclaimer:</strong> We are not responsible if another user steals your creation's credits, because <strong>YOU decided to upload and share it here</strong>.
       </div>
       <button onclick="toggleInfoModal()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-sm text-white" id="info-btn">
-        Entendido
+        Got it
       </button>
     </div>
   </div>
@@ -98,30 +98,6 @@
     const db = firebase.firestore();
 
     const translations = {
-      es: {
-        home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
-        infoTitle: "¿Para qué sirve esta página?",
-        infoDesc: "Esta plataforma está hecha para compartir archivos .gdlvl de Geometry Dash sin necesidad de subirlos a los servidores oficiales.",
-        infoWarning: "⚠️ Aviso legal: No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que tú eres el único que decide subirlo y exponerlo aquí.",
-        infoBtn: "Entendido",
-        mainMenu: "Menú Principal",
-        recentLevels: "Niveles Recientes (Públicos)", popularLevels: "Niveles Más Populares", featuredLevels: "Niveles Destacados",
-        recentDesc: "Explora los últimos niveles subidos por la comunidad en tiempo real.",
-        popularDesc: "Descubre los niveles más descargados y valorados por todos.",
-        featuredDesc: "Joyas seleccionadas de la comunidad por su alta calidad.",
-        welcomeBack: "¡Bienvenido de vuelta!",
-        heroTitle: "¡Comparte tus niveles de Geometry Dash!",
-        heroDesc: "Inicia sesión o regístrate para subir tus archivos .gdlvl y gestionar tus creaciones gratis.",
-        viewProfile: "Ver mi perfil",
-        searchByCode: "Ingresa el Código de Acceso Único", unlistedCodePlaceholder: "Ej: X8K2P9",
-        uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", visibility: "Visibilidad inicial",
-        public: "Público (Visible en el feed)", unlisted: "No Listado (Solo con código)", private: "Privado (Solo tú)",
-        imageLabel: "Imagen (Máximo 1 MB)", fileLabel: "Archivo .gdlvl", publishBtn: "Publicar Nivel Gratis",
-        loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
-        enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
-        forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Editar Perfil", creatorBadge: "Creador", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados."
-      },
       en: {
         home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
         infoTitle: "What is this site for?",
@@ -135,20 +111,44 @@
         featuredDesc: "Handpicked community gems of high quality.",
         welcomeBack: "Welcome back!",
         heroTitle: "Share your Geometry Dash levels!",
-        heroDesc: "Log in or register to upload your .gdlvl files and manage your creations for free.",
-        viewProfile: "View my profile",
+        heroDesc: "Log in or register to upload your .gdlvl files and manage your creations.",
+        viewProfile: "View profile",
         searchByCode: "Enter Unlisted Access Code", unlistedCodePlaceholder: "E.g.: X8K2P9",
         uploadTitle: "Upload .gdlvl Level", levelName: "Level Name", visibility: "Initial Visibility",
         public: "Public (Visible on feed)", unlisted: "Unlisted (Code required)", private: "Private (Only you)",
-        imageLabel: "Image (Max 1 MB)", fileLabel: ".gdlvl File", publishBtn: "Publish Level Free",
+        imageLabel: "Image (Max 1 MB)", fileLabel: ".gdlvl File", publishBtn: "Publish Level", cancelText: "Cancel",
         loginTitle: "Log In", registerTitle: "Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
         enterBtn: "Log In", registerBtn: "Create Account", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", editBtn: "Edit Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator",
         forgotPass: "Forgot password?", resendEmail: "Resend email",
         editProfile: "✏️ Edit Profile", creatorBadge: "Creator", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published."
+      },
+      es: {
+        home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
+        infoTitle: "¿Para qué sirve esta página?",
+        infoDesc: "Esta plataforma está hecha para compartir archivos .gdlvl de Geometry Dash sin necesidad de subirlos a los servidores oficiales.",
+        infoWarning: "⚠️ Aviso legal: No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que tú eres el único que decide subirlo y exponerlo aquí.",
+        infoBtn: "Entendido",
+        mainMenu: "Menú Principal",
+        recentLevels: "Niveles Recientes (Públicos)", popularLevels: "Niveles Más Populares", featuredLevels: "Niveles Destacados",
+        recentDesc: "Explora los últimos niveles subidos por la comunidad en tiempo real.",
+        popularDesc: "Descubre los niveles más descargados y valorados por todos.",
+        featuredDesc: "Joyas seleccionadas de la comunidad por su alta calidad.",
+        welcomeBack: "¡Bienvenido de vuelta!",
+        heroTitle: "¡Comparte tus niveles de Geometry Dash!",
+        heroDesc: "Inicia sesión o regístrate para subir tus archivos .gdlvl y gestionar tus creaciones.",
+        viewProfile: "Ver perfil",
+        searchByCode: "Ingresa el Código de Acceso Único", unlistedCodePlaceholder: "Ej: X8K2P9",
+        uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", visibility: "Visibilidad inicial",
+        public: "Público (Visible en el feed)", unlisted: "No Listado (Solo con código)", private: "Privado (Solo tú)",
+        imageLabel: "Imagen (Máximo 1 MB)", fileLabel: "Archivo .gdlvl", publishBtn: "Publicar Nivel", cancelText: "Cancelar",
+        loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
+        enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
+        forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
+        editProfile: "✏️ Editar Perfil", creatorBadge: "Creador", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados."
       }
     };
 
-    let currentLang = 'es';
+    let currentLang = 'en'; // Por defecto en inglés
 
     auth.onAuthStateChanged(async user => {
       const authContainer = document.getElementById('auth-nav-container');
@@ -162,7 +162,7 @@
             if (u.estadoBaneo === 'perma') {
               document.body.innerHTML = `
                 <div class="min-h-screen bg-red-950 flex flex-col items-center justify-center p-6 text-center">
-                  <h1 class="text-4xl font-black text-red-500 mb-4">⛔ CUENTA BANEADA PERMANENTEMENTE</h1>
+                  <h1 class="text-4xl font-black text-red-500 mb-4">⛔ BANNED ACCOUNT</h1>
                 </div>
               `;
               await db.collection("usuarios").doc(user.uid).delete();
@@ -172,14 +172,14 @@
             }
 
             const avatar = u.avatar || 'https://via.placeholder.com/40';
-            const username = u.username || user.displayName || 'Usuario';
+            const username = u.username || user.displayName || 'User';
             authContainer.innerHTML = `
               <div class="flex items-center gap-2">
                 <a href="#/perfil/${user.uid}" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 p-1.5 pr-3 rounded-full border border-slate-700 transition">
                   <img src="${avatar}" class="w-7 h-7 rounded-full object-cover border border-cyan-400">
                   <span class="text-xs font-bold text-cyan-400 hidden sm:inline">${username}</span>
                 </a>
-                <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="Cerrar sesión">
+                <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="Log out">
                   <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -200,6 +200,7 @@
 
     function changeLanguage(lang) {
       currentLang = lang;
+      document.getElementById('lang-select').value = lang;
       const t = translations[lang];
       document.getElementById('nav-home').innerText = t.home;
       document.getElementById('nav-code').innerText = t.code;
@@ -216,7 +217,11 @@
     }
 
     window.addEventListener('hashchange', renderRoute);
-    window.addEventListener('load', () => { lucide.createIcons(); renderRoute(); });
+    window.addEventListener('load', () => { 
+      document.getElementById('lang-select').value = currentLang;
+      lucide.createIcons(); 
+      renderRoute(); 
+    });
 
     function renderRoute() {
       const hash = window.location.hash || '#/';
@@ -267,7 +272,7 @@
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Cargando...</p>
+            <p class="text-slate-400 text-sm">Loading...</p>
           </div>
         `;
         cargarNivelesPorFiltro('recientes');
@@ -279,7 +284,7 @@
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Cargando...</p>
+            <p class="text-slate-400 text-sm">Loading...</p>
           </div>
         `;
         cargarNivelesPorFiltro('populares');
@@ -291,7 +296,7 @@
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Cargando...</p>
+            <p class="text-slate-400 text-sm">Loading...</p>
           </div>
         `;
         cargarNivelesPorFiltro('destacados');
@@ -300,7 +305,7 @@
           <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-4">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-bold text-cyan-400">${t.uploadTitle}</h2>
-              <a href="#/" class="text-xs text-slate-400 hover:text-white">Cancelar</a>
+              <a href="#/" class="text-xs text-slate-400 hover:text-white">${t.cancelText}</a>
             </div>
             <form onsubmit="subirNivelBase64(event)" class="space-y-4">
               <div>
@@ -399,6 +404,7 @@
       if (!container) return;
       const user = auth.currentUser;
       const t = translations[currentLang];
+      
       if (user) {
         try {
           const docUser = await db.collection("usuarios").doc(user.uid).get();
@@ -410,27 +416,28 @@
                   <img src="${u.avatar || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border-2 border-cyan-400">
                   <div>
                     <p class="text-xs text-slate-400 font-semibold">${t.welcomeBack}</p>
-                    <h2 class="text-lg font-black text-white">${u.username || 'Usuario'}</h2>
+                    <h2 class="text-lg font-black text-white">${u.username || 'User'}</h2>
                   </div>
                 </div>
                 <a href="#/perfil/${user.uid}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold rounded-xl text-xs border border-slate-700 transition">${t.viewProfile}</a>
               </div>
             `;
+            return;
           }
         } catch (e) {
           console.error(e);
         }
-      } else {
-        container.innerHTML = `
-          <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
-            <div>
-              <h2 class="text-lg font-black text-white mb-1">${t.heroTitle}</h2>
-              <p class="text-xs text-slate-300">${t.heroDesc}</p>
-            </div>
-            <a href="#/login" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs whitespace-nowrap transition shadow">${t.login}</a>
+      } 
+      
+      container.innerHTML = `
+        <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
+          <div>
+            <h2 class="text-lg font-black text-white mb-1">${t.heroTitle}</h2>
+            <p class="text-xs text-slate-300">${t.heroDesc}</p>
           </div>
-        `;
-      }
+          <a href="#/login" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs whitespace-nowrap transition shadow">${t.login}</a>
+        </div>
+      `;
     }
 
     function mostrarErrorAuth(mensaje) {
@@ -462,33 +469,23 @@
       });
     };
 
-    // SUBIDA DE NIVEL OPTIMIZADA (SIN CONFLICTO DE ÍNDICES)
     async function subirNivelBase64(e) {
       e.preventDefault();
       const user = auth.currentUser;
       if (!user) {
-        alert("⚠️ Debes iniciar sesión antes de subir un nivel.");
+        alert("⚠️ You must log in before uploading a level.");
         window.location.hash = '#/login';
         return;
       }
 
       try {
-        const userDoc = await db.collection("usuarios").doc(user.uid).get();
-        if (userDoc.exists) {
-          const u = userDoc.data();
-          if (u.bloqueoSubidaHasta && new Date(u.bloqueoSubidaHasta.toDate()) > new Date()) {
-            alert(`🚫 Tienes la subida bloqueada hasta: ${u.bloqueoSubidaHasta.toDate().toLocaleString()}`);
-            return;
-          }
-        }
-
         const nombre = document.getElementById('nombre-nivel').value;
         const visibilidad = document.getElementById('visibilidad-nivel').value;
         const fileImg = document.getElementById('input-imagen').files[0];
         const fileGdlvl = document.getElementById('input-archivo').files[0];
 
         if (fileImg.size > 1024 * 1024) {
-          alert("❌ La imagen supera 1 MB.");
+          alert("❌ The image exceeds 1 MB.");
           return;
         }
 
@@ -497,7 +494,7 @@
         const gdlvlBase64 = await leerComoBase64(fileGdlvl);
 
         const docUserRef = await db.collection("usuarios").doc(user.uid).get();
-        const nombreAutor = docUserRef.exists ? docUserRef.data().username : (user.displayName || 'Usuario');
+        const nombreAutor = docUserRef.exists ? docUserRef.data().username : (user.displayName || 'User');
 
         await db.collection("niveles").add({
           nombre: nombre,
@@ -513,10 +510,10 @@
           fecha: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert(`✅ ¡Nivel subido con éxito! ${visibilidad === 'nolistado' ? 'Código secreto: ' + codigoUnico : ''}`);
+        alert(`✅ Level successfully uploaded! ${visibilidad === 'nolistado' ? 'Secret Code: ' + codigoUnico : ''}`);
         window.location.hash = '#/';
       } catch (err) {
-        alert("Error al subir nivel: " + err.message);
+        alert("Error uploading level: " + err.message);
       }
     }
 
@@ -535,7 +532,7 @@
 
       query.get().then((snapshot) => {
         if (snapshot.empty) {
-          grid.innerHTML = `<p class="text-slate-400 text-sm">No hay niveles aquí todavía.</p>`;
+          grid.innerHTML = `<p class="text-slate-400 text-sm">No levels found here yet.</p>`;
           return;
         }
         grid.innerHTML = "";
@@ -546,23 +543,32 @@
           const esAutor = user && user.uid === n.uid;
           const t = translations[currentLang];
 
+          // Formatear la fecha de creación de forma segura
+          let fechaStr = "Fecha desconocida";
+          if (n.fecha && typeof n.fecha.toDate === 'function') {
+            fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
+              year: 'numeric', month: 'short', day: 'numeric'
+            });
+          }
+
           grid.innerHTML += `
             <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
               <div>
                 <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
                 <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
-                <p class="text-xs text-slate-400 mb-2">por <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
+                <p class="text-xs text-slate-400 mb-1">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
+                <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr}</p>
                 
                 ${esAutor ? `
                   <div class="bg-slate-900 border border-cyan-500/50 p-2 rounded mb-3 text-xs space-y-2">
-                    <p class="text-cyan-400 font-bold">👑 Panel de Autor:</p>
-                    <p class="text-slate-300">Código: <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
+                    <p class="text-cyan-400 font-bold">👑 Author Panel:</p>
+                    <p class="text-slate-300">Code: <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
                     <div class="flex items-center justify-between">
-                      <span class="text-slate-400">Visibilidad:</span>
+                      <span class="text-slate-400">Visibility:</span>
                       <select onchange="cambiarVisibilidad('${docId}', this.value)" class="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-700">
-                        <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Público</option>
-                        <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>No Listado</option>
-                        <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Privado</option>
+                        <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
+                        <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>Unlisted</option>
+                        <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Private</option>
                       </select>
                     </div>
                     <div class="flex gap-1 pt-1">
@@ -580,7 +586,7 @@
           `;
         });
       }).catch(err => {
-        grid.innerHTML = `<p class="text-amber-400 text-xs">Cargando elementos...</p>`;
+        grid.innerHTML = `<p class="text-amber-400 text-xs">Loading elements...</p>`;
       });
     }
 
@@ -588,13 +594,13 @@
       const app = document.getElementById('app-content');
       const doc = await db.collection("niveles").doc(idNivel).get();
       if (!doc.exists) {
-        app.innerHTML = `<p class="text-red-400 text-center py-12">Nivel no encontrado.</p>`;
+        app.innerHTML = `<p class="text-red-400 text-center py-12">Level not found.</p>`;
         return;
       }
       const n = doc.data();
       const user = auth.currentUser;
       if (!user || user.uid !== n.uid) {
-        alert("No tienes permiso para editar este nivel.");
+        alert("You do not have permission to edit this level.");
         window.location.hash = '#/';
         return;
       }
@@ -602,31 +608,31 @@
       app.innerHTML = `
         <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-4">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-cyan-400">Actualizar Nivel</h2>
-            <a href="#/" class="text-xs text-slate-400 hover:text-white">Cancelar</a>
+            <h2 class="text-xl font-bold text-cyan-400">Update Level</h2>
+            <a href="#/" class="text-xs text-slate-400 hover:text-white">Cancel</a>
           </div>
           <form onsubmit="actualizarNivelBase64(event, '${idNivel}')" class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Nombre</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New Name</label>
               <input type="text" id="edit-nombre-nivel" value="${n.nombre}" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Visibilidad</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Visibility</label>
               <select id="edit-visibilidad-nivel" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
-                <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Público</option>
-                <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>No Listado</option>
-                <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Privado</option>
+                <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
+                <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>Unlisted</option>
+                <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Private</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Imagen (Opcional, Máx 1 MB)</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New Image (Optional, Max 1 MB)</label>
               <input type="file" id="edit-input-imagen" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Archivo .gdlvl (Opcional)</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New .gdlvl File (Optional)</label>
               <input type="file" id="edit-input-archivo" accept=".gdlvl" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
             </div>
-            <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-white text-sm">Guardar Cambios</button>
+            <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-white text-sm">Save Changes</button>
           </form>
         </div>
       `;
@@ -646,7 +652,7 @@
 
       if (fileImg) {
         if (fileImg.size > 1024 * 1024) {
-          alert("❌ La imagen supera 1 MB.");
+          alert("❌ The image exceeds 1 MB.");
           return;
         }
         datosActualizados.imagen = await leerComoBase64(fileImg);
@@ -657,7 +663,7 @@
       }
 
       await db.collection("niveles").doc(idNivel).update(datosActualizados);
-      alert("✅ ¡Nivel actualizado con éxito!");
+      alert("✅ Level updated successfully!");
       window.location.hash = '#/';
     }
 
@@ -670,7 +676,7 @@
     }
 
     function eliminarNivel(idNivel) {
-      if (confirm("⚠️ ¿Estás seguro de eliminar este nivel?")) {
+      if (confirm("⚠️ Are you sure you want to delete this level?")) {
         db.collection("niveles").doc(idNivel).delete().then(() => {
           window.location.reload();
         });
@@ -695,16 +701,16 @@
                   <img src="${u.avatar || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full object-cover border border-cyan-400">
                   <div>
                     <h3 class="font-bold text-white">${u.username}</h3>
-                    <p class="text-xs text-slate-400">${u.bio || 'Creador'}</p>
+                    <p class="text-xs text-slate-400">${u.bio || 'Creator'}</p>
                   </div>
                 </div>
-                <a href="#/perfil/${doc.id}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs">Ver Perfil</a>
+                <a href="#/perfil/${doc.id}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs">View Profile</a>
               </div>
             `;
           }
         });
         if (encontrados === 0) {
-          contenedor.innerHTML = `<p class="text-slate-400 text-sm">No se encontraron usuarios.</p>`;
+          contenedor.innerHTML = `<p class="text-slate-400 text-sm">No users found.</p>`;
         }
       });
     }
@@ -716,7 +722,7 @@
       
       const docUser = await db.collection("usuarios").doc(uid).get();
       if (!docUser.exists) {
-        app.innerHTML = `<p class="text-red-400 text-center py-12">Usuario no encontrado.</p>`;
+        app.innerHTML = `<p class="text-red-400 text-center py-12">User not found.</p>`;
         return;
       }
       const u = docUser.data();
@@ -744,23 +750,23 @@
           <h3 class="text-lg font-bold text-cyan-400 mb-4">${t.editProfile}</h3>
           <div class="space-y-3">
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Biografía</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New Bio</label>
               <textarea id="edit-bio" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none">${u.bio || ''}</textarea>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Foto de Perfil (Máx 1MB)</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New Profile Picture (Max 1MB)</label>
               <input type="file" id="edit-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
             </div>
             <div class="flex gap-2 pt-2">
-              <button onclick="guardarCambiosPerfil('${uid}')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold text-xs">Guardar Cambios</button>
-              <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold text-xs">Cancelar</button>
+              <button onclick="guardarCambiosPerfil('${uid}')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold text-xs">Save Changes</button>
+              <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold text-xs">Cancel</button>
             </div>
           </div>
         </div>
 
         <h2 class="text-xl font-bold text-cyan-400 mb-4">${t.publicLevelsTitle}</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-perfil-niveles">
-          <p class="text-slate-400 text-sm">Cargando niveles...</p>
+          <p class="text-slate-400 text-sm">Loading levels...</p>
         </div>
       `;
 
@@ -773,15 +779,22 @@
         gridNiveles.innerHTML = "";
         snapshot.forEach(docNivel => {
           const n = docNivel.data();
+          let fechaStr = "";
+          if (n.fecha && typeof n.fecha.toDate === 'function') {
+            fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
+              year: 'numeric', month: 'short', day: 'numeric'
+            });
+          }
           gridNiveles.innerHTML += `
             <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
               <div>
                 <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
                 <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
+                <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr}</p>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
                 <span class="font-bold text-slate-400">👍 ${n.likes}</span>
-                <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">Descargar</a>
+                <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded font-bold text-white">Download</a>
               </div>
             </div>
           `;
@@ -801,14 +814,14 @@
 
       if (avatarFile) {
         if (avatarFile.size > 1024 * 1024) {
-          alert("❌ La foto de perfil supera 1 MB.");
+          alert("❌ Profile picture exceeds 1 MB.");
           return;
         }
         datosActualizados.avatar = await leerComoBase64(avatarFile);
       }
 
       await db.collection("usuarios").doc(uid).update(datosActualizados);
-      alert("✅ ¡Perfil actualizado con éxito!");
+      alert("✅ Profile updated successfully!");
       window.location.reload();
     }
 
@@ -817,7 +830,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (!email || !pass) {
-        mostrarErrorAuth("⚠️ Completa todos los campos.");
+        mostrarErrorAuth("⚠️ Please fill in all fields.");
         return;
       }
 
@@ -825,15 +838,15 @@
         .then(cred => {
           if (!cred.user.emailVerified) {
             auth.signOut();
-            mostrarErrorAuth("⚠️ Debes verificar tu correo electrónico antes de entrar.");
+            mostrarErrorAuth("⚠️ You must verify your email before logging in.");
             return;
           }
           window.location.hash = '#/';
         })
         .catch(err => {
           let msg = err.message;
-          if (err.code === 'auth/invalid-email') msg = "El correo electrónico no es válido.";
-          if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Correo o contraseña incorrectos.";
+          if (err.code === 'auth/invalid-email') msg = "Invalid email address.";
+          if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Incorrect email or password.";
           mostrarErrorAuth("❌ " + msg);
         });
     }
@@ -846,22 +859,22 @@
       const avatarFile = document.getElementById('register-avatar').files[0];
 
       if (!username) {
-        mostrarErrorAuth("⚠️ Debes ingresar un Nombre de usuario.");
+        mostrarErrorAuth("⚠️ You must enter a username.");
         return;
       }
       if (!email || !email.includes('@')) {
-        mostrarErrorAuth("⚠️ Ingresa un correo electrónico válido.");
+        mostrarErrorAuth("⚠️ Enter a valid email address.");
         return;
       }
       if (!pass || pass.length < 6) {
-        mostrarErrorAuth("⚠️ La contraseña debe tener al menos 6 caracteres.");
+        mostrarErrorAuth("⚠️ Password must be at least 6 characters long.");
         return;
       }
 
       let avatarBase64 = "";
       if (avatarFile) {
         if (avatarFile.size > 1024 * 1024) {
-          mostrarErrorAuth("❌ La foto de perfil supera 1 MB.");
+          mostrarErrorAuth("❌ Profile picture exceeds 1 MB.");
           return;
         }
         avatarBase64 = await leerComoBase64(avatarFile);
@@ -875,17 +888,17 @@
         await db.collection("usuarios").doc(cred.user.uid).set({
           username: username,
           email: email,
-          bio: bio || '¡Hola! Soy un creador de niveles en GD Level Share.',
+          bio: bio || 'Hello! I am a level creator on GD Level Share.',
           avatar: avatarBase64,
           estadoBaneo: 'ninguno',
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        mostrarExitoAuth("✉️ ¡Cuenta creada con éxito! Te hemos enviado un correo de verificación.");
+        mostrarExitoAuth("✉️ Account created successfully! Verification email sent.");
         auth.signOut();
       } catch (err) {
         let msg = err.message;
-        if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado.";
+        if (err.code === 'auth/email-already-in-use') msg = "This email is already registered.";
         mostrarErrorAuth("❌ " + msg);
       }
     }
@@ -893,12 +906,12 @@
     function recuperarPassword() {
       const email = document.getElementById('login-email').value.trim();
       if (!email || !email.includes('@')) {
-        mostrarErrorAuth("⚠️ Escribe tu correo electrónico arriba para enviarte el enlace.");
+        mostrarErrorAuth("⚠️ Enter your email above to send you the reset link.");
         return;
       }
       auth.sendPasswordResetEmail(email)
         .then(() => {
-          mostrarExitoAuth("📧 Se ha enviado un correo para restablecer tu contraseña.");
+          mostrarExitoAuth("📧 Password reset email sent.");
         })
         .catch(err => {
           mostrarErrorAuth("❌ Error: " + err.message);
@@ -910,7 +923,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (!email || !pass) {
-        mostrarErrorAuth("⚠️ Para reenviar el correo, primero ingresa tu email y contraseña.");
+        mostrarErrorAuth("⚠️ Enter your email and password first to resend.");
         return;
       }
 
@@ -918,10 +931,10 @@
         .then(async cred => {
           await cred.user.sendEmailVerification();
           auth.signOut();
-          mostrarExitoAuth("📧 Correo de verificación reenviado.");
+          mostrarExitoAuth("📧 Verification email resent.");
         })
         .catch(err => {
-          mostrarErrorAuth("❌ No se pudo reenviar: " + err.message);
+          mostrarErrorAuth("❌ Could not resend: " + err.message);
         });
     }
 
@@ -930,7 +943,7 @@
       const contenedor = document.getElementById('resultado-codigo');
       db.collection("niveles").where("codigo", "==", codigo).get().then(snapshot => {
         if (snapshot.empty) {
-          contenedor.innerHTML = `<p class="text-red-400 text-sm">No se encontró ningún nivel con ese código.</p>`;
+          contenedor.innerHTML = `<p class="text-red-400 text-sm">No level found with that code.</p>`;
           return;
         }
         snapshot.forEach(doc => {
@@ -938,8 +951,8 @@
           contenedor.innerHTML = `
             <div class="gd-card rounded-lg p-4 mt-4 text-left">
               <h3 class="font-bold text-lg text-white">${n.nombre}</h3>
-              <p class="text-xs text-slate-400 mb-3">por <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
-              <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-4 py-2 bg-cyan-600 text-white rounded font-bold text-xs inline-block">Descargar .gdlvl</a>
+              <p class="text-xs text-slate-400 mb-3">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
+              <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-4 py-2 bg-cyan-600 text-white rounded font-bold text-xs inline-block">Download .gdlvl</a>
             </div>
           `;
         });
