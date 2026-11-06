@@ -99,7 +99,6 @@
 
     const OWNER_UID = "Q3XNdVK6F0TZ1jK7wzBlYb85umG2";
 
-    // Sistema de notificaciones flotantes limpias (Toast) en lugar de alertas nativas feas
     function mostrarToast(mensaje, tipo = 'success') {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -137,7 +136,8 @@
         editProfile: "✏️ Edit Profile", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published.",
         loadingText: "Loading...", authorPanel: "Author Panel:", codeLabel: "Code:", visibilityLabel: "Visibility:", backToMenu: "← Main Menu",
         noDescription: "No description provided for this level.", downloads: "Downloads",
-        followers: "Followers", following: "Following", followBtn: "Follow", unfollowBtn: "Unfollow", hideStats: "Hide Stats"
+        followers: "Followers", following: "Following", followBtn: "Follow", unfollowBtn: "Unfollow", hideStats: "Hide Stats",
+        viewFollowing: "👀 View Following List"
       },
       es: {
         home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
@@ -157,10 +157,11 @@
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Editar Perfil", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
+        editProfile: "✏️ Edit Profile", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
         noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas",
-        followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores"
+        followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores",
+        viewFollowing: "👀 Ver a quién sigues"
       }
     };
 
@@ -397,6 +398,9 @@
       } else if (hash.startsWith('#/perfil/')) {
         const uidPerfil = hash.split('/')[2];
         cargarPerfilUsuario(uidPerfil);
+      } else if (hash.startsWith('#/siguiendo/')) {
+        const uidPerfil = hash.split('/')[2];
+        cargarListaSiguiendo(uidPerfil);
       } else if (hash === '#/login' || hash === '#/registro') {
         const esRegistro = hash === '#/registro';
         app.innerHTML = `
@@ -908,9 +912,7 @@
       const esOwner = currentUser && currentUser.uid === OWNER_UID;
 
       const seguidoresSnap = await db.collection("seguidores").where("siguiendoA", "==", uid).get();
-      const siguiendoSnap = await db.collection("seguidores").where("seguidorUid", "==", uid).get();
       const numSeguidores = seguidoresSnap.size;
-      const numSiguiendo = siguiendoSnap.size;
 
       let yaLoSigo = false;
       if (currentUser && !esMiPerfil) {
@@ -935,7 +937,12 @@
             ${!ocultarEstadisticas ? `
               <div class="flex gap-4 text-xs font-semibold text-slate-400 mb-2">
                 <span>👥 ${numSeguidores} ${t.followers}</span>
-                <span>👤 ${numSiguiendo} ${t.following}</span>
+              </div>
+            ` : ''}
+
+            ${esMiPerfil ? `
+              <div class="mt-2">
+                <a href="#/siguiendo/${uid}" class="text-xs font-bold text-cyan-400 hover:underline bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 inline-block">${t.viewFollowing}</a>
               </div>
             ` : ''}
 
@@ -1007,6 +1014,57 @@
           renderizarTarjetaNivel({ id: docNivel.id, ...docNivel.data() }, gridNiveles);
         });
       });
+    }
+
+    async function cargarListaSiguiendo(uid) {
+      const app = document.getElementById('app-content');
+      const currentUser = auth.currentUser;
+      const t = translations[currentLang];
+
+      if (!currentUser || currentUser.uid !== uid) {
+        mostrarToast("You can only view your own following list.", 'error');
+        window.location.hash = '#/';
+        return;
+      }
+
+      app.innerHTML = `
+        <div class="mb-4">
+          <a href="#/perfil/${uid}" class="text-xs font-bold text-cyan-400 hover:underline">← Back to Profile</a>
+        </div>
+        <h2 class="text-2xl font-black text-cyan-400 mb-4">${t.following}</h2>
+        <div id="lista-siguiendo" class="space-y-3">
+          <p class="text-slate-400 text-sm">${t.loadingText}</p>
+        </div>
+      `;
+
+      const contenedor = document.getElementById('lista-siguiendo');
+      const snapshot = await db.collection("seguidores").where("seguidorUid", "==", uid).get();
+
+      if (snapshot.empty) {
+        contenedor.innerHTML = `<p class="text-slate-400 text-sm">You are not following anyone yet.</p>`;
+        return;
+      }
+
+      contenedor.innerHTML = "";
+      for (let docRel of snapshot.docs) {
+        const siguiendoA = docRel.data().siguiendoA;
+        const userDoc = await db.collection("usuarios").doc(siguiendoA).get();
+        if (userDoc.exists) {
+          const u = userDoc.data();
+          contenedor.innerHTML += `
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <img src="${u.avatar || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full object-cover border border-cyan-400">
+                <div>
+                  <h3 class="font-bold text-white">${u.username}</h3>
+                  <p class="text-xs text-slate-400">${u.bio || 'User'}</p>
+                </div>
+              </div>
+              <a href="#/perfil/${siguiendoA}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs">View Profile</a>
+            </div>
+          `;
+        }
+      }
     }
 
     async function toggleSeguir(targetUid, yaSigue) {
