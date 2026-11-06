@@ -79,7 +79,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.3.2.0</span>
+    VERSION: <span class="text-white font-bold">v1.3.4.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -222,6 +222,13 @@
                   <p class="text-slate-400 text-xs">${tiempoStr}</p>
                 </div>
               `;
+              return;
+            }
+
+            // Si ya está logueado e intenta entrar a login o registro mediante enlace copiado, redirigir al inicio
+            const hashActual = window.location.hash;
+            if (hashActual === '#/login' || hashActual === '#/registro') {
+              window.location.hash = '#/';
               return;
             }
 
@@ -430,6 +437,12 @@
         const uidPerfil = hash.split('/')[2];
         cargarListaSiguiendo(uidPerfil);
       } else if (hash === '#/login' || hash === '#/registro') {
+        // Si el usuario ya está autenticado, evitar mostrar la vista de login/registro
+        if (auth.currentUser) {
+          window.location.hash = '#/';
+          return;
+        }
+
         const esRegistro = hash === '#/registro';
         app.innerHTML = `
           <div class="max-w-sm mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-6">
@@ -949,7 +962,9 @@
           <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">${t.backToMenu}</a>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex flex-col items-center text-center md:flex-row md:text-left md:items-center gap-6">
-          <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-24 h-24 md:w-20 md:h-20 rounded-full object-cover border-2 border-cyan-400 shrink-0 shadow-lg">
+          <div class="shrink-0 flex justify-center">
+            <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-24 h-24 md:w-20 md:h-20 rounded-full object-cover border-2 border-cyan-400 shadow-lg">
+          </div>
           <div class="flex-grow w-full">
             <div class="flex flex-col md:flex-row items-center md:items-start gap-2 mb-1">
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
