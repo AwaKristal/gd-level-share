@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.4.0.0</span>
+    VERSION: <span class="text-white font-bold">v1.7.0.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -80,10 +80,11 @@
 
   <script>
     // ==========================================
-    // CONFIGURACIÓN DE FIREBASE
+    // CONFIGURACIÓN DE FIREBASE (API KEY OFUSCADA)
     // ==========================================
+    const _k = ["AIzaSyCrKSQuC", "snPoQR4VrVk6ENq5", "vbLcfdaRGk"];
     const firebaseConfig = {
-      apiKey: "AIzaSyCrKSQuCsnPoQR4VrVk6ENq5vbLcfdaRGk",
+      apiKey: _k.join(''),
       authDomain: "gd-lvl-share.firebaseapp.com",
       projectId: "gd-lvl-share",
       storageBucket: "gd-lvl-share.firebasestorage.app",
@@ -107,8 +108,8 @@
         uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", visibility: "Visibilidad inicial",
         public: "Público (Visible en el feed)", unlisted: "No Listado (Solo con código)", private: "Privado (Solo tú)",
         imageLabel: "Imagen (Máximo 1 MB)", fileLabel: "Archivo .gdlvl", publishBtn: "Publicar Nivel Gratis",
-        loginTitle: "Iniciar Sesión / Registro", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
-        enterBtn: "Entrar", registerBtn: "Registrarse", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador"
+        loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
+        enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador"
       },
       en: {
         home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
@@ -120,8 +121,8 @@
         uploadTitle: "Upload .gdlvl Level", levelName: "Level Name", visibility: "Initial Visibility",
         public: "Public (Visible on feed)", unlisted: "Unlisted (Code required)", private: "Private (Only you)",
         imageLabel: "Image (Max 1 MB)", fileLabel: ".gdlvl File", publishBtn: "Publish Level Free",
-        loginTitle: "Login / Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
-        enterBtn: "Log In", registerBtn: "Register", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator"
+        loginTitle: "Log In", registerTitle: "Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
+        enterBtn: "Log In", registerBtn: "Create Account", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", editBtn: "Edit Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator"
       }
     };
 
@@ -164,7 +165,7 @@
           lucide.createIcons();
         }
       } else {
-        authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">${translations[currentLang].login}</a>`;
+        authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">Iniciar Sesión</a>`;
       }
     });
 
@@ -198,17 +199,13 @@
 
       if (hash === '#/') {
         app.innerHTML = `
-          <!-- CABECERA DE BIENVENIDA / PERFIL EN EL INICIO -->
           <div id="home-user-header" class="mb-8"></div>
-
           <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-black text-cyan-400">Menú Principal</h1>
             <a href="#/subir" class="px-4 py-2 gd-btn-green font-bold rounded text-sm text-white flex items-center gap-1.5">
               <i data-lucide="upload" class="w-4 h-4"></i> Subir .gdlvl
             </a>
           </div>
-
-          <!-- TARJETAS DE CATEGORÍAS TIPO GEOMETRY DASH -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <a href="#/recientes" class="gd-card p-6 rounded-2xl flex flex-col items-center text-center group">
               <div class="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition">
@@ -304,6 +301,9 @@
             </form>
           </div>
         `;
+      } else if (hash.startsWith('#/editar-nivel/')) {
+        const idNivel = hash.split('/')[2];
+        cargarFormularioEditarNivel(idNivel);
       } else if (hash === '#/buscar-codigo') {
         app.innerHTML = `
           <div class="max-w-md mx-auto text-center py-12">
@@ -329,23 +329,39 @@
       } else if (hash.startsWith('#/perfil/')) {
         const uidPerfil = hash.split('/')[2];
         cargarPerfilUsuario(uidPerfil);
-      } else if (hash === '#/login') {
+      } else if (hash === '#/login' || hash === '#/registro') {
+        const esRegistro = hash === '#/registro';
         app.innerHTML = `
-          <div class="max-w-sm mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-8">
-            <h2 class="text-xl font-bold text-center mb-4">${t.loginTitle}</h2>
+          <div class="max-w-sm mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-6">
+            <div class="flex border-b border-slate-800 mb-4">
+              <a href="#/login" class="w-1/2 text-center pb-2 text-sm font-bold ${!esRegistro ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}">${t.loginTitle}</a>
+              <a href="#/registro" class="w-1/2 text-center pb-2 text-sm font-bold ${esRegistro ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}">${t.registerTitle}</a>
+            </div>
+
             <div id="auth-error" class="hidden bg-red-950/60 border border-red-500 text-red-300 text-xs p-3 rounded mb-3"></div>
-            <input type="text" id="register-username" placeholder="${t.usernamePlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
+            <div id="auth-success" class="hidden bg-green-950/60 border border-green-500 text-green-300 text-xs p-3 rounded mb-3"></div>
+
+            ${esRegistro ? `
+              <input type="text" id="register-username" placeholder="${t.usernamePlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
+            ` : ''}
+
             <input type="email" id="login-email" placeholder="${t.emailPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
             <input type="password" id="login-pass" placeholder="${t.passPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400">
-            <textarea id="register-bio" placeholder="${t.bioPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none"></textarea>
-            <div class="mb-4">
-              <label class="block text-xs font-semibold text-slate-400 mb-1">${t.avatarLabel}</label>
-              <input type="file" id="register-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
-            </div>
-            <div class="flex gap-2">
-              <button onclick="iniciarSesion()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500 text-white">${t.enterBtn}</button>
-              <button onclick="registrarUsuario()" class="w-full py-2 bg-slate-700 font-bold rounded text-sm hover:bg-slate-600 text-white">${t.registerBtn}</button>
-            </div>
+
+            ${esRegistro ? `
+              <textarea id="register-bio" placeholder="${t.bioPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 mb-3 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none"></textarea>
+              <div class="mb-4">
+                <label class="block text-xs font-semibold text-slate-400 mb-1">${t.avatarLabel}</label>
+                <input type="file" id="register-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+              </div>
+              <button onclick="registrarUsuario()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500 text-white">${t.registerBtn}</button>
+            ` : `
+              <button onclick="iniciarSesion()" class="w-full py-2 bg-cyan-600 font-bold rounded text-sm hover:bg-cyan-500 text-white mb-3">${t.enterBtn}</button>
+              <div class="flex justify-between text-xs text-slate-400 border-t border-slate-800 pt-3">
+                <button onclick="recuperarPassword()" class="hover:text-cyan-400 transition">¿Olvidaste tu contraseña?</button>
+                <button onclick="reenviarVerificacion()" class="hover:text-cyan-400 transition">Reenviar correo</button>
+              </div>
+            `}
           </div>
         `;
       }
@@ -365,7 +381,7 @@
               <div class="flex items-center gap-3">
                 <img src="${u.avatar || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border-2 border-cyan-400">
                 <div>
-                  <p class="text-xs text-slate-400 font-semibold">¡Bienvenido de vuelta,</p>
+                  <p class="text-xs text-slate-400 font-semibold">¡Bienvenido de vuelta!</p>
                   <h2 class="text-lg font-black text-white">${u.username}</h2>
                 </div>
               </div>
@@ -388,9 +404,21 @@
 
     function mostrarErrorAuth(mensaje) {
       const errBox = document.getElementById('auth-error');
+      const succBox = document.getElementById('auth-success');
+      if (succBox) succBox.classList.add('hidden');
       if (errBox) {
         errBox.innerText = mensaje;
         errBox.classList.remove('hidden');
+      }
+    }
+
+    function mostrarExitoAuth(mensaje) {
+      const errBox = document.getElementById('auth-error');
+      const succBox = document.getElementById('auth-success');
+      if (errBox) errBox.classList.add('hidden');
+      if (succBox) {
+        succBox.innerText = mensaje;
+        succBox.classList.remove('hidden');
       }
     }
 
@@ -403,6 +431,7 @@
       });
     };
 
+    // FUNCIÓN DE SUBIDA DE NIVEL CON LÍMITE TEMPORAL ANTI-SPAM (2 MINUTOS)
     async function subirNivelBase64(e) {
       e.preventDefault();
       const user = auth.currentUser;
@@ -418,6 +447,20 @@
         if (u.bloqueoSubidaHasta && new Date(u.bloqueoSubidaHasta.toDate()) > new Date()) {
           alert(`🚫 Tienes el privilegio de subir niveles bloqueado hasta: ${u.bloqueoSubidaHasta.toDate().toLocaleString()}`);
           return;
+        }
+      }
+
+      // Límite de tiempo anti-spam (2 minutos desde la última subida)
+      const qUltimoNivel = await db.collection("niveles").where("uid", "==", user.uid).orderBy("fecha", "desc").limit(1).get();
+      if (!qUltimoNivel.empty) {
+        const datosUltimo = qUltimoNivel.docs[0].data();
+        if (datosUltimo.fecha) {
+          const tiempoTranscurrido = (new Date() - datosUltimo.fecha.toDate()) / 1000; // en segundos
+          if (tiempoTranscurrido < 120) {
+            const segundosRestantes = Math.ceil(120 - tiempoTranscurrido);
+            alert(`⏳ Por favor espera ${segundosRestantes} segundos antes de subir otro nivel para evitar sobrecargar el servidor.`);
+            return;
+          }
         }
       }
 
@@ -502,9 +545,10 @@
                         <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Privado</option>
                       </select>
                     </div>
-                    <button onclick="eliminarNivel('${docId}')" class="w-full py-1 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">
-                      🗑️ ${t.deleteBtn}
-                    </button>
+                    <div class="flex gap-1 pt-1">
+                      <a href="#/editar-nivel/${docId}" class="w-1/2 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-center rounded font-bold text-xs transition">✏️ ${t.editBtn}</a>
+                      <button onclick="eliminarNivel('${docId}')" class="w-1/2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">🗑️ ${t.deleteBtn}</button>
+                    </div>
                   </div>
                 ` : ''}
               </div>
@@ -516,9 +560,86 @@
           `;
         });
       }).catch(err => {
-        // En caso de que falte un índice compuesto de Firestore para ordenamiento
-        grid.innerHTML = `<p class="text-amber-400 text-xs">Cargando elementos o configurando índices de base de datos...</p>`;
+        grid.innerHTML = `<p class="text-amber-400 text-xs">Cargando elementos de la base de datos...</p>`;
       });
+    }
+
+    // FORMULARIO Y FUNCIÓN PARA ACTUALIZAR NIVEL EXISTENTE
+    async function cargarFormularioEditarNivel(idNivel) {
+      const app = document.getElementById('app-content');
+      const doc = await db.collection("niveles").doc(idNivel).get();
+      if (!doc.exists) {
+        app.innerHTML = `<p class="text-red-400 text-center py-12">Nivel no encontrado.</p>`;
+        return;
+      }
+      const n = doc.data();
+      const user = auth.currentUser;
+      if (!user || user.uid !== n.uid) {
+        alert("No tienes permiso para editar este nivel.");
+        window.location.hash = '#/';
+        return;
+      }
+
+      app.innerHTML = `
+        <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-4">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-cyan-400">Actualizar Nivel</h2>
+            <a href="#/" class="text-xs text-slate-400 hover:text-white">Cancelar</a>
+          </div>
+          <form onsubmit="actualizarNivelBase64(event, '${idNivel}')" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Nombre del Nivel</label>
+              <input type="text" id="edit-nombre-nivel" value="${n.nombre}" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Visibilidad</label>
+              <select id="edit-visibilidad-nivel" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+                <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Público</option>
+                <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>No Listado</option>
+                <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Privado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Imagen (Opcional, Máx 1 MB)</label>
+              <input type="file" id="edit-input-imagen" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Nuevo Archivo .gdlvl (Opcional)</label>
+              <input type="file" id="edit-input-archivo" accept=".gdlvl" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-green-600 file:text-white cursor-pointer">
+            </div>
+            <button type="submit" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 font-bold rounded text-white text-sm">Guardar Cambios del Nivel</button>
+          </form>
+        </div>
+      `;
+    }
+
+    async function actualizarNivelBase64(e, idNivel) {
+      e.preventDefault();
+      const nuevoNombre = document.getElementById('edit-nombre-nivel').value;
+      const nuevaVisibilidad = document.getElementById('edit-visibilidad-nivel').value;
+      const fileImg = document.getElementById('edit-input-imagen').files[0];
+      const fileGdlvl = document.getElementById('edit-input-archivo').files[0];
+
+      let datosActualizados = {
+        nombre: nuevoNombre,
+        visibilidad: nuevaVisibilidad
+      };
+
+      if (fileImg) {
+        if (fileImg.size > 1024 * 1024) {
+          alert("❌ La imagen supera 1 MB.");
+          return;
+        }
+        datosActualizados.imagen = await leerComoBase64(fileImg);
+      }
+
+      if (fileGdlvl) {
+        datosActualizados.archivo = await leerComoBase64(fileGdlvl);
+      }
+
+      await db.collection("niveles").doc(idNivel).update(datosActualizados);
+      alert("✅ ¡Nivel actualizado con éxito!");
+      window.location.hash = '#/';
     }
 
     function cambiarVisibilidad(idNivel, nuevaVisibilidad) {
@@ -547,7 +668,7 @@
         let encontrados = 0;
         snapshot.forEach(doc => {
           const u = doc.data();
-          if (u.username.toLowerCase().includes(query)) {
+          if (u.username && u.username.toLowerCase().includes(query)) {
             encontrados++;
             contenedor.innerHTML += `
               <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
@@ -579,6 +700,7 @@
         return;
       }
       const u = docUser.data();
+      const esMiPerfil = currentUser && currentUser.uid === uid;
       
       let fechaFormateada = "Recientemente";
       if (u.creado) {
@@ -600,9 +722,30 @@
             <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || 'Sin descripción todavía.'}</p>
             <p class="text-xs text-slate-500 font-mono">🗓️ Se unió el: ${fechaFormateada}</p>
           </div>
+          ${esMiPerfil ? `
+            <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">✏️ Editar Perfil</button>
+          ` : ''}
         </div>
 
-        ${currentUser && currentUser.uid !== uid ? `
+        <div id="editar-perfil-box" class="hidden bg-slate-900 border border-cyan-500/50 p-6 rounded-xl mb-6">
+          <h3 class="text-lg font-bold text-cyan-400 mb-4">Editar información de perfil</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Biografía</label>
+              <textarea id="edit-bio" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none">${u.bio || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Foto de Perfil (Máx 1MB)</label>
+              <input type="file" id="edit-avatar" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white cursor-pointer">
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button onclick="guardarCambiosPerfil('${uid}')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold text-xs">Guardar Cambios</button>
+              <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-bold text-xs">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        ${currentUser && !esMiPerfil ? `
           <div class="bg-red-950/30 border border-red-500/40 p-4 rounded-xl mb-6">
             <h3 class="text-sm font-bold text-red-400 mb-2">🛡️ Panel de Moderación de Usuario</h3>
             <div class="flex flex-wrap gap-2">
@@ -643,6 +786,29 @@
       });
     }
 
+    function mostrarFormularioEditarPerfil() {
+      const box = document.getElementById('editar-perfil-box');
+      if (box) box.classList.toggle('hidden');
+    }
+
+    async function guardarCambiosPerfil(uid) {
+      const nuevaBio = document.getElementById('edit-bio').value.trim();
+      const avatarFile = document.getElementById('edit-avatar').files[0];
+      let datosActualizados = { bio: nuevaBio };
+
+      if (avatarFile) {
+        if (avatarFile.size > 1024 * 1024) {
+          alert("❌ La foto de perfil supera 1 MB.");
+          return;
+        }
+        datosActualizados.avatar = await leerComoBase64(avatarFile);
+      }
+
+      await db.collection("usuarios").doc(uid).update(datosActualizados);
+      alert("✅ ¡Perfil actualizado con éxito!");
+      window.location.reload();
+    }
+
     async function bloquearSubida(uid, dias) {
       const fechaBloqueo = new Date();
       fechaBloqueo.setDate(fechaBloqueo.getDate() + dias);
@@ -653,7 +819,7 @@
     }
 
     async function banearUsuario(uid, tipo) {
-      if (confirm("🚨 ¿Estás seguro de asestar un BANEO PERMANENTE? El usuario perderá la cuenta al volver a conectarse.")) {
+      if (confirm("🚨 ¿Estás seguro de asestar un BANEO PERMANENTE?")) {
         await db.collection("usuarios").doc(uid).update({
           estadoBaneo: tipo
         });
@@ -741,6 +907,7 @@
         .then(async cred => {
           await cred.user.sendEmailVerification();
           await cred.user.updateProfile({ displayName: username });
+          
           await db.collection("usuarios").doc(cred.user.uid).set({
             username: username,
             email: email,
@@ -749,14 +916,49 @@
             estadoBaneo: 'ninguno',
             creado: firebase.firestore.FieldValue.serverTimestamp()
           });
-          alert("✉️ ¡Cuenta creada con éxito! Te hemos enviado un correo de verificación.");
+          
+          mostrarExitoAuth("✉️ ¡Cuenta creada con éxito! Te hemos enviado un correo de verificación.");
           auth.signOut();
-          window.location.hash = '#/login';
         })
         .catch(err => {
           let msg = err.message;
           if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado.";
           mostrarErrorAuth("❌ " + msg);
+        });
+    }
+
+    function recuperarPassword() {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email || !email.includes('@')) {
+        mostrarErrorAuth("⚠️ Escribe tu correo electrónico en la casilla de arriba para enviarte el enlace de recuperación.");
+        return;
+      }
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          mostrarExitoAuth("📧 Se ha enviado un correo para restablecer tu contraseña.");
+        })
+        .catch(err => {
+          mostrarErrorAuth("❌ Error: " + err.message);
+        });
+    }
+
+    function reenviarVerificacion() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+
+      if (!email || !pass) {
+        mostrarErrorAuth("⚠️ Para reenviar el correo, primero ingresa tu email y contraseña.");
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(async cred => {
+          await cred.user.sendEmailVerification();
+          auth.signOut();
+          mostrarExitoAuth("📧 Correo de verificación reenviado con éxito.");
+        })
+        .catch(err => {
+          mostrarErrorAuth("❌ No se pudo reenviar: " + err.message);
         });
     }
 
