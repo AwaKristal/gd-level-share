@@ -30,10 +30,6 @@
       </a>
       <nav class="hidden md:flex items-center gap-6 font-semibold text-sm">
         <a href="#/" class="hover:text-cyan-400 transition" id="nav-home">Inicio</a>
-        <a href="#/populares" class="hover:text-cyan-400 transition" id="nav-popular">Populares</a>
-        <a href="#/destacados" class="hover:text-yellow-400 transition flex items-center gap-1 text-yellow-500" id="nav-featured">
-          <i data-lucide="star" class="w-4 h-4"></i> Destacados
-        </a>
         <a href="#/buscar-codigo" class="hover:text-cyan-400 transition" id="nav-code">Buscar Código</a>
         <a href="#/buscar-usuarios" class="hover:text-cyan-400 transition" id="nav-users">Buscar Usuarios</a>
       </nav>
@@ -57,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.3.0.0</span>
+    VERSION: <span class="text-white font-bold">v1.4.0.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -102,7 +98,7 @@
 
     const translations = {
       es: {
-        home: "Inicio", popular: "Populares", featured: "Destacados", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
+        home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
         infoTitle: "¿Para qué sirve esta página?",
         infoDesc: "Esta plataforma está hecha para compartir archivos .gdlvl de Geometry Dash sin necesidad de subirlos a los servidores oficiales.",
         infoWarning: "⚠️ Aviso legal: No nos hacemos responsables si algún usuario te roba los créditos de tu creación, ya que tú eres el único que decide subirlo y exponerlo aquí.",
@@ -115,7 +111,7 @@
         enterBtn: "Entrar", registerBtn: "Registrarse", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador"
       },
       en: {
-        home: "Home", popular: "Popular", featured: "Featured", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
+        home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
         infoTitle: "What is this site for?",
         infoDesc: "This platform is built to share .gdlvl level files directly with friends without having to upload them to the official Geometry Dash servers.",
         infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because YOU decided to upload and share it here.",
@@ -138,7 +134,6 @@
         if (docUser.exists) {
           const u = docUser.data();
 
-          // VERIFICACIÓN DE BANEO PERMANENTE AL CARGAR
           if (u.estadoBaneo === 'perma') {
             document.body.innerHTML = `
               <div class="min-h-screen bg-red-950 flex flex-col items-center justify-center p-6 text-center">
@@ -147,7 +142,6 @@
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
             `;
-            // AUTODESTRUCCIÓN EN EL INSTANTE
             await db.collection("usuarios").doc(user.uid).delete();
             await user.delete();
             setTimeout(() => { window.location.reload(); }, 3500);
@@ -158,13 +152,16 @@
           const username = user.displayName || 'Usuario';
           authContainer.innerHTML = `
             <div class="flex items-center gap-2">
-              <a href="#/perfil/${user.uid}" class="flex items-center gap-2 hover:opacity-80">
-                <img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-cyan-400">
+              <a href="#/perfil/${user.uid}" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 p-1.5 pr-3 rounded-full border border-slate-700 transition">
+                <img src="${avatar}" class="w-7 h-7 rounded-full object-cover border border-cyan-400">
                 <span class="text-xs font-bold text-cyan-400 hidden sm:inline">${username}</span>
               </a>
-              <button onclick="cerrarSesion()" class="px-2 py-1 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400 ml-1" title="Cerrar sesión">Salir</button>
+              <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="Cerrar sesión">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+              </button>
             </div>
           `;
+          lucide.createIcons();
         }
       } else {
         authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">${translations[currentLang].login}</a>`;
@@ -179,8 +176,6 @@
       currentLang = lang;
       const t = translations[lang];
       document.getElementById('nav-home').innerText = t.home;
-      document.getElementById('nav-popular').innerText = t.popular;
-      document.getElementById('nav-featured').innerText = `★ ${t.featured}`;
       document.getElementById('nav-code').innerText = t.code;
       document.getElementById('nav-users').innerText = t.users;
       document.getElementById('info-title').innerText = t.infoTitle;
@@ -201,21 +196,89 @@
       const app = document.getElementById('app-content');
       const t = translations[currentLang];
 
-      if (hash === '#/' || hash === '#/recientes') {
+      if (hash === '#/') {
         app.innerHTML = `
+          <!-- CABECERA DE BIENVENIDA / PERFIL EN EL INICIO -->
+          <div id="home-user-header" class="mb-8"></div>
+
           <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-black text-cyan-400">Menú Principal</h1>
+            <a href="#/subir" class="px-4 py-2 gd-btn-green font-bold rounded text-sm text-white flex items-center gap-1.5">
+              <i data-lucide="upload" class="w-4 h-4"></i> Subir .gdlvl
+            </a>
+          </div>
+
+          <!-- TARJETAS DE CATEGORÍAS TIPO GEOMETRY DASH -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <a href="#/recientes" class="gd-card p-6 rounded-2xl flex flex-col items-center text-center group">
+              <div class="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 group-hover:scale-110 transition">
+                <i data-lucide="clock" class="w-8 h-8"></i>
+              </div>
+              <h2 class="text-xl font-bold text-white mb-2">Recientes</h2>
+              <p class="text-xs text-slate-400">Explora los últimos niveles subidos por la comunidad en tiempo real.</p>
+            </a>
+
+            <a href="#/populares" class="gd-card p-6 rounded-2xl flex flex-col items-center text-center group">
+              <div class="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 mb-4 group-hover:scale-110 transition">
+                <i data-lucide="trending-up" class="w-8 h-8"></i>
+              </div>
+              <h2 class="text-xl font-bold text-white mb-2">Populares</h2>
+              <p class="text-xs text-slate-400">Descubre los niveles más descargados y valorados por todos.</p>
+            </a>
+
+            <a href="#/destacados" class="gd-card p-6 rounded-2xl flex flex-col items-center text-center group">
+              <div class="w-16 h-16 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 mb-4 group-hover:scale-110 transition">
+                <i data-lucide="star" class="w-8 h-8"></i>
+              </div>
+              <h2 class="text-xl font-bold text-white mb-2">Destacados</h2>
+              <p class="text-xs text-slate-400">Joyas seleccionadas de la comunidad por su alta calidad.</p>
+            </a>
+          </div>
+        `;
+        renderizarHeaderHome();
+      } else if (hash === '#/recientes') {
+        app.innerHTML = `
+          <div class="flex items-center justify-between mb-6">
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← Volver al Menú</a>
             <h1 class="text-2xl font-black text-cyan-400">${t.recentLevels}</h1>
-            <a href="#/subir" class="px-4 py-2 gd-btn-green font-bold rounded text-sm text-white">+ Subir .gdlvl</a>
+            <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
             <p class="text-slate-400 text-sm">Cargando niveles...</p>
           </div>
         `;
-        cargarNivelesPublicos();
+        cargarNivelesPorFiltro('recientes');
+      } else if (hash === '#/populares') {
+        app.innerHTML = `
+          <div class="flex items-center justify-between mb-6">
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← Volver al Menú</a>
+            <h1 class="text-2xl font-black text-green-400">${t.popularLevels}</h1>
+            <div></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
+            <p class="text-slate-400 text-sm">Cargando niveles...</p>
+          </div>
+        `;
+        cargarNivelesPorFiltro('populares');
+      } else if (hash === '#/destacados') {
+        app.innerHTML = `
+          <div class="flex items-center justify-between mb-6">
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← Volver al Menú</a>
+            <h1 class="text-2xl font-black text-yellow-400">${t.featuredLevels}</h1>
+            <div></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
+            <p class="text-slate-400 text-sm">Cargando niveles...</p>
+          </div>
+        `;
+        cargarNivelesPorFiltro('destacados');
       } else if (hash === '#/subir') {
         app.innerHTML = `
           <div class="max-w-lg mx-auto bg-slate-900 border border-slate-800 p-6 rounded-xl mt-4">
-            <h2 class="text-xl font-bold text-cyan-400 mb-4">${t.uploadTitle}</h2>
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-bold text-cyan-400">${t.uploadTitle}</h2>
+              <a href="#/" class="text-xs text-slate-400 hover:text-white">Cancelar</a>
+            </div>
             <form onsubmit="subirNivelBase64(event)" class="space-y-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1">${t.levelName}</label>
@@ -241,10 +304,6 @@
             </form>
           </div>
         `;
-      } else if (hash === '#/populares') {
-        app.innerHTML = `<h1 class="text-2xl font-black text-cyan-400 mb-6">${t.popularLevels}</h1>`;
-      } else if (hash === '#/destacados') {
-        app.innerHTML = `<h1 class="text-2xl font-black text-yellow-400 mb-6">${t.featuredLevels}</h1>`;
       } else if (hash === '#/buscar-codigo') {
         app.innerHTML = `
           <div class="max-w-md mx-auto text-center py-12">
@@ -293,6 +352,40 @@
       lucide.createIcons();
     }
 
+    async function renderizarHeaderHome() {
+      const container = document.getElementById('home-user-header');
+      if (!container) return;
+      const user = auth.currentUser;
+      if (user) {
+        const docUser = await db.collection("usuarios").doc(user.uid).get();
+        if (docUser.exists) {
+          const u = docUser.data();
+          container.innerHTML = `
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-4 rounded-2xl flex items-center justify-between shadow-lg">
+              <div class="flex items-center gap-3">
+                <img src="${u.avatar || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border-2 border-cyan-400">
+                <div>
+                  <p class="text-xs text-slate-400 font-semibold">¡Bienvenido de vuelta,</p>
+                  <h2 class="text-lg font-black text-white">${u.username}</h2>
+                </div>
+              </div>
+              <a href="#/perfil/${user.uid}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold rounded-xl text-xs border border-slate-700 transition">Ver mi perfil</a>
+            </div>
+          `;
+        }
+      } else {
+        container.innerHTML = `
+          <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
+            <div>
+              <h2 class="text-lg font-black text-white mb-1">¡Comparte tus niveles de Geometry Dash!</h2>
+              <p class="text-xs text-slate-300">Inicia sesión o regístrate para subir tus archivos .gdlvl y gestionar tus creaciones gratis.</p>
+            </div>
+            <a href="#/login" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs whitespace-nowrap transition shadow">Iniciar Sesión</a>
+          </div>
+        `;
+      }
+    }
+
     function mostrarErrorAuth(mensaje) {
       const errBox = document.getElementById('auth-error');
       if (errBox) {
@@ -319,7 +412,6 @@
         return;
       }
 
-      // Verificar si el usuario está bloqueado para subir niveles
       const userDoc = await db.collection("usuarios").doc(user.uid).get();
       if (userDoc.exists) {
         const u = userDoc.data();
@@ -366,11 +458,21 @@
       }
     }
 
-    function cargarNivelesPublicos() {
+    function cargarNivelesPorFiltro(tipo) {
       const grid = document.getElementById('grid-niveles');
-      db.collection("niveles").where("visibilidad", "==", "publico").get().then((snapshot) => {
+      let query = db.collection("niveles").where("visibilidad", "==", "publico");
+
+      if (tipo === 'recientes') {
+        query = query.orderBy("fecha", "desc");
+      } else if (tipo === 'populares') {
+        query = query.orderBy("likes", "desc");
+      } else if (tipo === 'destacados') {
+        query = query.where("isFeatured", "==", true);
+      }
+
+      query.get().then((snapshot) => {
         if (snapshot.empty) {
-          grid.innerHTML = `<p class="text-slate-400 text-sm">No hay niveles públicos todavía. ¡Sé el primero en subir uno!</p>`;
+          grid.innerHTML = `<p class="text-slate-400 text-sm">No hay niveles en esta categoría todavía.</p>`;
           return;
         }
         grid.innerHTML = "";
@@ -413,6 +515,9 @@
             </div>
           `;
         });
+      }).catch(err => {
+        // En caso de que falte un índice compuesto de Firestore para ordenamiento
+        grid.innerHTML = `<p class="text-amber-400 text-xs">Cargando elementos o configurando índices de base de datos...</p>`;
       });
     }
 
@@ -420,14 +525,14 @@
       db.collection("niveles").doc(idNivel).update({
         visibilidad: nuevaVisibilidad
       }).then(() => {
-        cargarNivelesPublicos();
+        window.location.reload();
       });
     }
 
     function eliminarNivel(idNivel) {
       if (confirm("⚠️ ¿Estás seguro de que deseas eliminar este nivel?")) {
         db.collection("niveles").doc(idNivel).delete().then(() => {
-          cargarNivelesPublicos();
+          window.location.reload();
         });
       }
     }
@@ -482,6 +587,9 @@
       }
 
       app.innerHTML = `
+        <div class="mb-4">
+          <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">← Volver al Menú Principal</a>
+        </div>
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
           <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400">
           <div class="flex-grow">
@@ -494,7 +602,6 @@
           </div>
         </div>
 
-        <!-- PANEL DE SANCIÓN ADMIN (Si estás logueado y no es tu propio perfil) -->
         ${currentUser && currentUser.uid !== uid ? `
           <div class="bg-red-950/30 border border-red-500/40 p-4 rounded-xl mb-6">
             <h3 class="text-sm font-bold text-red-400 mb-2">🛡️ Panel de Moderación de Usuario</h3>
