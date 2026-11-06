@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.9.2.6</span>
+    VERSION: <span class="text-white font-bold">v1.3.0.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -101,7 +101,7 @@
         home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
         infoTitle: "What is this site for?",
         infoDesc: "This platform is built to share .gdlvl level files directly with friends without having to upload them to the official Geometry Dash servers.",
-        infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because <strong>YOU decided to upload and share it here</strong>.",
+        infoWarning: "⚠️ Disclaimer: We are not responsible if another user steals your creation's credits, because YOU decided to upload and share it here.",
         infoBtn: "Got it",
         mainMenu: "Main Menu",
         recentLevels: "Recent Levels (Public)", popularLevels: "Most Popular Levels", featuredLevels: "Featured Levels",
@@ -117,7 +117,8 @@
         forgotPass: "Forgot password?", resendEmail: "Resend email",
         editProfile: "✏️ Edit Profile", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published.",
         loadingText: "Loading...", authorPanel: "Author Panel:", codeLabel: "Code:", visibilityLabel: "Visibility:", backToMenu: "← Main Menu",
-        noDescription: "No description provided for this level.", downloads: "Downloads"
+        noDescription: "No description provided for this level.", downloads: "Downloads",
+        followers: "Followers", following: "Following", followBtn: "Follow", unfollowBtn: "Unfollow", hideStats: "Hide Stats"
       },
       es: {
         home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
@@ -139,7 +140,8 @@
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
         editProfile: "✏️ Editar Perfil", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
-        noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas"
+        noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas",
+        followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores"
       }
     };
 
@@ -155,7 +157,6 @@
           if (docUser.exists) {
             const u = docUser.data();
 
-            // Verificar si tiene baneo temporal expirado
             if (u.estadoBaneo === 'temporal' && u.baneoExpira && u.baneoExpira.toDate() < new Date()) {
               await db.collection("usuarios").doc(user.uid).update({
                 estadoBaneo: 'ninguno',
@@ -840,7 +841,6 @@
       const esOwner = user.uid === OWNER_UID;
       const esAutor = user.uid === nivelData.uid;
 
-      // Restricción estricta: solo el autor o el owner pueden borrar
       if (!esAutor && !esOwner) {
         alert("❌ You can only delete your own levels.");
         return;
@@ -899,6 +899,20 @@
       const esMiPerfil = currentUser && currentUser.uid === uid;
       const esOwner = currentUser && currentUser.uid === OWNER_UID;
 
+      // Obtener seguidores y siguiendo
+      const seguidoresSnap = await db.collection("seguidores").where("siguiendoA", "==", uid).get();
+      const siguiendoSnap = await db.collection("seguidores").where("seguidorUid", "==", uid).get();
+      const numSeguidores = seguidoresSnap.size;
+      const numSiguiendo = siguiendoSnap.size;
+
+      let yaLoSigo = false;
+      if (currentUser && !esMiPerfil) {
+        const relDoc = await db.collection("seguidores").doc(`${currentUser.uid}_${uid}`).get();
+        yaLoSigo = relDoc.exists;
+      }
+
+      const ocultarEstadisticas = u.ocultarEstadisticas || false;
+
       app.innerHTML = `
         <div class="mb-4">
           <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">${t.backToMenu}</a>
@@ -910,15 +924,31 @@
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
             </div>
             <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || t.noBio}</p>
+            
+            ${!ocultarEstadisticas ? `
+              <div class="flex gap-4 text-xs font-semibold text-slate-400 mb-2">
+                <span>👥 ${numSeguidores} ${t.followers}</span>
+                <span>👤 ${numSiguiendo} ${t.following}</span>
+              </div>
+            ` : ''}
+
             ${u.bloqueadoSubir ? `<p class="text-xs text-amber-400 font-bold mt-1">⚠️ Bloqueado para subir niveles. Motivo: ${u.bloqueadoSubirMotivo || 'Sin motivo'}</p>` : ''}
             ${u.estadoBaneo && u.estadoBaneo !== 'ninguno' ? `<p class="text-xs text-red-400 font-bold mt-1">⛔ Estado de Baneo: <span class="uppercase">${u.estadoBaneo}</span>. Motivo: ${u.baneoMotivo || 'Sin motivo'}</p>` : ''}
           </div>
           <div class="flex flex-col gap-2">
             ${esMiPerfil ? `
               <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">${t.editProfile}</button>
+              <button onclick="toggleOcultarStats(${ocultarEstadisticas})" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-bold transition">
+                ${ocultarEstadisticas ? 'Mostrar contadores' : t.hideStats}
+              </button>
+            ` : ''}
+            ${currentUser && !esMiPerfil ? `
+              <button onclick="toggleSeguir('${uid}', ${yaLoSigo})" class="px-5 py-2 ${yaLoSigo ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-cyan-600 text-white'} rounded-xl text-xs font-bold transition">
+                ${yaLoSigo ? t.unfollowBtn : t.followBtn}
+              </button>
             ` : ''}
             ${esOwner && !esMiPerfil ? `
-              <div class="flex flex-col gap-1.5">
+              <div class="flex flex-col gap-1.5 mt-2">
                 <button onclick="toggleBloqueoSubir('${uid}', ${!u.bloqueadoSubir})" class="px-4 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-xl text-xs font-bold transition">
                   ${u.bloqueadoSubir ? '🔓 Desbloquear Subir Niveles' : '🔒 Bloquear Subir Niveles'}
                 </button>
@@ -970,6 +1000,35 @@
           renderizarTarjetaNivel({ id: docNivel.id, ...docNivel.data() }, gridNiveles);
         });
       });
+    }
+
+    async function toggleSeguir(targetUid, yaSigue) {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You must log in to follow users.");
+        window.location.hash = '#/login';
+        return;
+      }
+      const relId = `${user.uid}_${targetUid}`;
+      const relRef = db.collection("seguidores").doc(relId);
+
+      if (yaSigue) {
+        await relRef.delete();
+      } else {
+        await relRef.set({
+          seguidorUid: user.uid,
+          siguiendoA: targetUid,
+          fecha: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      window.location.reload();
+    }
+
+    async function toggleOcultarStats(estadoActual) {
+      const user = auth.currentUser;
+      if (!user) return;
+      await db.collection("usuarios").doc(user.uid).update({ ocultarEstadisticas: !estadoActual });
+      window.location.reload();
     }
 
     async function toggleBloqueoSubir(uid, estado) {
@@ -1130,6 +1189,7 @@
           bloqueadoSubirMotivo: "",
           estadoBaneo: "ninguno",
           baneoMotivo: "",
+          ocultarEstadisticas: false,
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
