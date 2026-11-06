@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.9.1.1</span>
+    VERSION: <span class="text-white font-bold">v1.9.2.0</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -109,18 +109,16 @@
         recentDesc: "Explore the latest levels uploaded by the community in real time.",
         popularDesc: "Discover the most downloaded and rated levels.",
         featuredDesc: "Handpicked community gems of high quality.",
-        welcomeBack: "Welcome back!",
-        heroTitle: "Share your Geometry Dash levels!",
-        heroDesc: "Log in or register to upload your .gdlvl files and manage your creations.",
-        viewProfile: "View profile",
         searchByCode: "Enter Unlisted Access Code", unlistedCodePlaceholder: "E.g.: X8K2P9",
-        uploadTitle: "Upload .gdlvl Level", levelName: "Level Name", visibility: "Initial Visibility",
+        uploadTitle: "Upload .gdlvl Level", levelName: "Level Name", levelDesc: "Level Description", levelDescPlaceholder: "Write a short description or tips for your level...", visibility: "Initial Visibility",
         public: "Public (Visible on feed)", unlisted: "Unlisted (Code required)", private: "Private (Only you)",
         imageLabel: "Image (Max 1 MB)", fileLabel: ".gdlvl File", publishBtn: "Publish Level", cancelText: "Cancel",
         loginTitle: "Log In", registerTitle: "Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
         enterBtn: "Log In", registerBtn: "Create Account", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", editBtn: "Edit Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator",
         forgotPass: "Forgot password?", resendEmail: "Resend email",
-        editProfile: "✏️ Edit Profile", creatorBadge: "Creator", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published."
+        editProfile: "✏️ Edit Profile", creatorBadge: "Creator", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published.",
+        loadingText: "Loading...", authorPanel: "Author Panel:", codeLabel: "Code:", visibilityLabel: "Visibility:", backToMenu: "← Main Menu",
+        noDescription: "No description provided for this level."
       },
       es: {
         home: "Inicio", code: "Buscar Código", users: "Buscar Usuarios", login: "Iniciar Sesión", logout: "Cerrar Sesión",
@@ -133,26 +131,25 @@
         recentDesc: "Explora los últimos niveles subidos por la comunidad en tiempo real.",
         popularDesc: "Descubre los niveles más descargados y valorados por todos.",
         featuredDesc: "Joyas seleccionadas de la comunidad por su alta calidad.",
-        welcomeBack: "¡Bienvenido de vuelta!",
-        heroTitle: "¡Comparte tus niveles de Geometry Dash!",
-        heroDesc: "Inicia sesión o regístrate para subir tus archivos .gdlvl y gestionar tus creaciones.",
-        viewProfile: "Ver perfil",
         searchByCode: "Ingresa el Código de Acceso Único", unlistedCodePlaceholder: "Ej: X8K2P9",
-        uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", visibility: "Visibilidad inicial",
+        uploadTitle: "Subir Nivel .gdlvl", levelName: "Nombre del Nivel", levelDesc: "Descripción del Nivel", levelDescPlaceholder: "Escribe una breve descripción o consejos para tu nivel...", visibility: "Visibilidad inicial",
         public: "Público (Visible en el feed)", unlisted: "No Listado (Solo con código)", private: "Privado (Solo tú)",
         imageLabel: "Imagen (Máximo 1 MB)", fileLabel: "Archivo .gdlvl", publishBtn: "Publicar Nivel", cancelText: "Cancelar",
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Editar Perfil", creatorBadge: "Creador", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados."
+        editProfile: "✏️ Editar Perfil", creatorBadge: "Creador", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
+        loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
+        noDescription: "Este nivel no tiene descripción proporcionada."
       }
     };
 
-    let currentLang = 'en'; // Por defecto en inglés
+    let currentLang = 'en';
 
     auth.onAuthStateChanged(async user => {
       const authContainer = document.getElementById('auth-nav-container');
       if (!authContainer) return;
+      const t = translations[currentLang];
       if (user) {
         try {
           const docUser = await db.collection("usuarios").doc(user.uid).get();
@@ -179,7 +176,7 @@
                   <img src="${avatar}" class="w-7 h-7 rounded-full object-cover border border-cyan-400">
                   <span class="text-xs font-bold text-cyan-400 hidden sm:inline">${username}</span>
                 </a>
-                <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="Log out">
+                <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="${t.logout}">
                   <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -190,7 +187,7 @@
           console.error(e);
         }
       } else {
-        authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">${translations[currentLang].login}</a>`;
+        authContainer.innerHTML = `<a href="#/login" class="px-3 py-1.5 text-xs font-bold rounded bg-cyan-600 hover:bg-cyan-500 text-white" id="btn-login-text">${t.login}</a>`;
       }
     });
 
@@ -209,6 +206,10 @@
       document.getElementById('info-desc').innerText = t.infoDesc;
       document.getElementById('info-warning').innerHTML = t.infoWarning;
       document.getElementById('info-btn').innerText = t.infoBtn;
+      
+      const btnLogin = document.getElementById('btn-login-text');
+      if (btnLogin) btnLogin.innerText = t.login;
+
       renderRoute();
     }
 
@@ -230,8 +231,7 @@
 
       if (hash === '#/') {
         app.innerHTML = `
-          <div id="home-user-header" class="mb-8"></div>
-          <div class="flex justify-between items-center mb-6">
+          <div class="flex justify-between items-center mb-6 mt-2">
             <h1 class="text-2xl font-black text-cyan-400">${t.mainMenu}</h1>
             <a href="#/subir" class="px-4 py-2 gd-btn-green font-bold rounded text-sm text-white flex items-center gap-1.5">
               <i data-lucide="upload" class="w-4 h-4"></i> ${t.uploadTitle}
@@ -263,40 +263,39 @@
             </a>
           </div>
         `;
-        renderizarHeaderHome();
       } else if (hash === '#/recientes') {
         app.innerHTML = `
           <div class="flex items-center justify-between mb-6">
-            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← ${t.mainMenu}</a>
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">${t.backToMenu}</a>
             <h1 class="text-2xl font-black text-cyan-400">${t.recentLevels}</h1>
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Loading...</p>
+            <p class="text-slate-400 text-sm">${t.loadingText}</p>
           </div>
         `;
         cargarNivelesPorFiltro('recientes');
       } else if (hash === '#/populares') {
         app.innerHTML = `
           <div class="flex items-center justify-between mb-6">
-            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← ${t.mainMenu}</a>
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">${t.backToMenu}</a>
             <h1 class="text-2xl font-black text-green-400">${t.popularLevels}</h1>
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Loading...</p>
+            <p class="text-slate-400 text-sm">${t.loadingText}</p>
           </div>
         `;
         cargarNivelesPorFiltro('populares');
       } else if (hash === '#/destacados') {
         app.innerHTML = `
           <div class="flex items-center justify-between mb-6">
-            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">← ${t.mainMenu}</a>
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">${t.backToMenu}</a>
             <h1 class="text-2xl font-black text-yellow-400">${t.featuredLevels}</h1>
             <div></div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="grid-niveles">
-            <p class="text-slate-400 text-sm">Loading...</p>
+            <p class="text-slate-400 text-sm">${t.loadingText}</p>
           </div>
         `;
         cargarNivelesPorFiltro('destacados');
@@ -311,6 +310,10 @@
               <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1">${t.levelName}</label>
                 <input type="text" id="nombre-nivel" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">${t.levelDesc}</label>
+                <textarea id="desc-nivel" placeholder="${t.levelDescPlaceholder}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none"></textarea>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1">${t.visibility}</label>
@@ -332,6 +335,9 @@
             </form>
           </div>
         `;
+      } else if (hash.startsWith('#/nivel/')) {
+        const idNivel = hash.split('/')[2];
+        cargarDetalleNivel(idNivel);
       } else if (hash.startsWith('#/editar-nivel/')) {
         const idNivel = hash.split('/')[2];
         cargarFormularioEditarNivel(idNivel);
@@ -399,47 +405,6 @@
       lucide.createIcons();
     }
 
-    async function renderizarHeaderHome() {
-      const container = document.getElementById('home-user-header');
-      if (!container) return;
-      const user = auth.currentUser;
-      const t = translations[currentLang];
-      
-      if (user) {
-        try {
-          const docUser = await db.collection("usuarios").doc(user.uid).get();
-          if (docUser.exists) {
-            const u = docUser.data();
-            container.innerHTML = `
-              <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-4 rounded-2xl flex items-center justify-between shadow-lg">
-                <div class="flex items-center gap-3">
-                  <img src="${u.avatar || 'https://via.placeholder.com/60'}" class="w-14 h-14 rounded-full object-cover border-2 border-cyan-400">
-                  <div>
-                    <p class="text-xs text-slate-400 font-semibold">${t.welcomeBack}</p>
-                    <h2 class="text-lg font-black text-white">${u.username || 'User'}</h2>
-                  </div>
-                </div>
-                <a href="#/perfil/${user.uid}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold rounded-xl text-xs border border-slate-700 transition">${t.viewProfile}</a>
-              </div>
-            `;
-            return;
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      } 
-      
-      container.innerHTML = `
-        <div class="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
-          <div>
-            <h2 class="text-lg font-black text-white mb-1">${t.heroTitle}</h2>
-            <p class="text-xs text-slate-300">${t.heroDesc}</p>
-          </div>
-          <a href="#/login" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs whitespace-nowrap transition shadow">${t.login}</a>
-        </div>
-      `;
-    }
-
     function mostrarErrorAuth(mensaje) {
       const errBox = document.getElementById('auth-error');
       const succBox = document.getElementById('auth-success');
@@ -480,6 +445,7 @@
 
       try {
         const nombre = document.getElementById('nombre-nivel').value;
+        const descripcion = document.getElementById('desc-nivel').value.trim();
         const visibilidad = document.getElementById('visibilidad-nivel').value;
         const fileImg = document.getElementById('input-imagen').files[0];
         const fileGdlvl = document.getElementById('input-archivo').files[0];
@@ -498,6 +464,7 @@
 
         await db.collection("niveles").add({
           nombre: nombre,
+          descripcion: descripcion,
           autor: nombreAutor,
           uid: user.uid,
           visibilidad: visibilidad,
@@ -543,8 +510,7 @@
           const esAutor = user && user.uid === n.uid;
           const t = translations[currentLang];
 
-          // Formatear la fecha de creación de forma segura
-          let fechaStr = "Fecha desconocida";
+          let fechaStr = "Unknown date";
           if (n.fecha && typeof n.fecha.toDate === 'function') {
             fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
               year: 'numeric', month: 'short', day: 'numeric'
@@ -554,17 +520,20 @@
           grid.innerHTML += `
             <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
               <div>
-                <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
-                <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
+                <a href="#/nivel/${docId}">
+                  <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700 hover:opacity-90 transition">
+                  <h3 class="font-bold text-lg text-white mb-1 hover:text-cyan-400 transition">${n.nombre}</h3>
+                </a>
                 <p class="text-xs text-slate-400 mb-1">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a></p>
+                <p class="text-xs text-slate-300 mb-2 line-clamp-2">${n.descripcion || ''}</p>
                 <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr}</p>
                 
                 ${esAutor ? `
                   <div class="bg-slate-900 border border-cyan-500/50 p-2 rounded mb-3 text-xs space-y-2">
-                    <p class="text-cyan-400 font-bold">👑 Author Panel:</p>
-                    <p class="text-slate-300">Code: <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
+                    <p class="text-cyan-400 font-bold">👑 ${t.authorPanel}</p>
+                    <p class="text-slate-300">${t.codeLabel} <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
                     <div class="flex items-center justify-between">
-                      <span class="text-slate-400">Visibility:</span>
+                      <span class="text-slate-400">${t.visibilityLabel}</span>
                       <select onchange="cambiarVisibilidad('${docId}', this.value)" class="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-700">
                         <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
                         <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>Unlisted</option>
@@ -588,6 +557,48 @@
       }).catch(err => {
         grid.innerHTML = `<p class="text-amber-400 text-xs">Loading elements...</p>`;
       });
+    }
+
+    async function cargarDetalleNivel(idNivel) {
+      const app = document.getElementById('app-content');
+      const t = translations[currentLang];
+      const doc = await db.collection("niveles").doc(idNivel).get();
+      
+      if (!doc.exists) {
+        app.innerHTML = `<p class="text-red-400 text-center py-12">Level not found.</p>`;
+        return;
+      }
+      
+      const n = doc.data();
+      let fechaStr = "Unknown date";
+      if (n.fecha && typeof n.fecha.toDate === 'function') {
+        fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+      }
+
+      app.innerHTML = `
+        <div class="max-w-2xl mx-auto py-6">
+          <div class="mb-4">
+            <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">${t.backToMenu}</a>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden p-6 shadow-xl">
+            <img src="${n.imagen}" class="w-full h-64 object-cover rounded-xl border border-slate-700 mb-4">
+            <h1 class="text-3xl font-black text-white mb-2">${n.nombre}</h1>
+            <p class="text-sm text-slate-400 mb-4">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a> • <span class="font-mono text-xs">${fechaStr}</span></p>
+            
+            <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl mb-6">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t.levelDesc}</h3>
+              <p class="text-sm text-slate-200 leading-relaxed">${n.descripcion || t.noDescription}</p>
+            </div>
+
+            <div class="flex items-center justify-between border-t border-slate-800 pt-4">
+              <span class="font-bold text-slate-300">👍 ${n.likes} Likes</span>
+              <a href="${n.archivo}" download="${n.nombre}.gdlvl" class="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-white text-sm shadow">${t.downloadBtn} .gdlvl</a>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     async function cargarFormularioEditarNivel(idNivel) {
@@ -617,6 +628,10 @@
               <input type="text" id="edit-nombre-nivel" value="${n.nombre}" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400">
             </div>
             <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New Description</label>
+              <textarea id="edit-desc-nivel" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white outline-none focus:border-cyan-400 h-20 resize-none">${n.descripcion || ''}</textarea>
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-slate-400 mb-1">Visibility</label>
               <select id="edit-visibilidad-nivel" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
                 <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
@@ -641,12 +656,14 @@
     async function actualizarNivelBase64(e, idNivel) {
       e.preventDefault();
       const nuevoNombre = document.getElementById('edit-nombre-nivel').value;
+      const nuevaDesc = document.getElementById('edit-desc-nivel').value.trim();
       const nuevaVisibilidad = document.getElementById('edit-visibilidad-nivel').value;
       const fileImg = document.getElementById('edit-input-imagen').files[0];
       const fileGdlvl = document.getElementById('edit-input-archivo').files[0];
 
       let datosActualizados = {
         nombre: nuevoNombre,
+        descripcion: nuevaDesc,
         visibilidad: nuevaVisibilidad
       };
 
@@ -730,7 +747,7 @@
 
       app.innerHTML = `
         <div class="mb-4">
-          <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">← ${t.mainMenu}</a>
+          <a href="#/" class="text-xs font-bold text-cyan-400 hover:underline">${t.backToMenu}</a>
         </div>
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
           <img src="${u.avatar || 'https://via.placeholder.com/80'}" class="w-20 h-20 rounded-full object-cover border-2 border-cyan-400">
@@ -779,7 +796,8 @@
         gridNiveles.innerHTML = "";
         snapshot.forEach(docNivel => {
           const n = docNivel.data();
-          let fechaStr = "";
+          const docId = docNivel.id;
+          let fechaStr = "Unknown date";
           if (n.fecha && typeof n.fecha.toDate === 'function') {
             fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
               year: 'numeric', month: 'short', day: 'numeric'
@@ -788,8 +806,11 @@
           gridNiveles.innerHTML += `
             <div class="gd-card rounded-lg overflow-hidden p-4 flex flex-col justify-between">
               <div>
-                <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700">
-                <h3 class="font-bold text-lg text-white mb-1">${n.nombre}</h3>
+                <a href="#/nivel/${docId}">
+                  <img src="${n.imagen}" class="w-full h-32 object-cover rounded mb-2 border border-slate-700 hover:opacity-95 transition">
+                  <h3 class="font-bold text-lg text-white mb-1 hover:text-cyan-400 transition">${n.nombre}</h3>
+                </a>
+                <p class="text-xs text-slate-300 mb-2 line-clamp-2">${n.descripcion || ''}</p>
                 <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr}</p>
               </div>
               <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-2 text-xs">
