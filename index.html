@@ -53,7 +53,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.9.2.2</span>
+    VERSION: <span class="text-white font-bold">v1.9.2.4</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -94,6 +94,8 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    const OWNER_UID = "Q3XNdVK6F0TZ1jK7wzBlYb85umG2";
+
     const translations = {
       en: {
         home: "Home", code: "Search Code", users: "Search Users", login: "Login", logout: "Log Out",
@@ -113,7 +115,7 @@
         loginTitle: "Log In", registerTitle: "Register", usernamePlaceholder: "Username (e.g. DashKing)", emailPlaceholder: "email@example.com", passPlaceholder: "Password (min. 6 chars)", bioPlaceholder: "Short bio or description...", avatarLabel: "Profile Picture (Max 1MB)",
         enterBtn: "Log In", registerBtn: "Create Account", downloadBtn: "Download", searchBtn: "Search", deleteBtn: "Delete Level", editBtn: "Edit Level", searchUsersPlaceholder: "Search by username...", searchUserBtn: "Search Creator",
         forgotPass: "Forgot password?", resendEmail: "Resend email",
-        editProfile: "✏️ Edit Profile", creatorBadge: "Creator", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published.",
+        editProfile: "✏️ Edit Profile", noBio: "No description.", publicLevelsTitle: "Creator's Public Levels", noLevelsUser: "This user has no public levels published.",
         loadingText: "Loading...", authorPanel: "Author Panel:", codeLabel: "Code:", visibilityLabel: "Visibility:", backToMenu: "← Main Menu",
         noDescription: "No description provided for this level.", downloads: "Downloads"
       },
@@ -135,7 +137,7 @@
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Editar Perfil", creatorBadge: "Creador", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
+        editProfile: "✏️ Editar Perfil", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
         noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas"
       }
@@ -428,6 +430,12 @@
       }
 
       try {
+        const docUserRef = await db.collection("usuarios").doc(user.uid).get();
+        if (docUserRef.exists && docUserRef.data().bloqueadoSubir) {
+          alert("❌ Your account is blocked from uploading levels.");
+          return;
+        }
+
         const nombre = document.getElementById('nombre-nivel').value;
         const descripcion = document.getElementById('desc-nivel').value.trim();
         const visibilidad = document.getElementById('visibilidad-nivel').value;
@@ -443,7 +451,6 @@
         const imgBase64 = await leerComoBase64(fileImg);
         const gdlvlBase64 = await leerComoBase64(fileGdlvl);
 
-        const docUserRef = await db.collection("usuarios").doc(user.uid).get();
         const nombreAutor = docUserRef.exists ? docUserRef.data().username : (user.displayName || 'User');
 
         await db.collection("niveles").add({
@@ -513,6 +520,7 @@
     function renderizarTarjetaNivel(n, contenedor) {
       const docId = n.id;
       const user = auth.currentUser;
+      const esOwner = user && user.uid === OWNER_UID;
       const esAutor = user && user.uid === n.uid;
       const t = translations[currentLang];
 
@@ -535,9 +543,9 @@
             <p class="text-xs text-slate-300 mb-2 line-clamp-2">${n.descripcion || ''}</p>
             <p class="text-[10px] text-slate-500 mb-2 font-mono">📅 ${fechaStr} • 📥 ${n.descargas || 0} ${t.downloads}</p>
             
-            ${esAutor ? `
+            ${(esAutor || esOwner) ? `
               <div class="bg-slate-900 border border-cyan-500/50 p-2 rounded mb-3 text-xs space-y-2">
-                <p class="text-cyan-400 font-bold">👑 ${t.authorPanel}</p>
+                <p class="text-cyan-400 font-bold">👑 ${esOwner && !esAutor ? 'Admin Panel' : t.authorPanel}</p>
                 <p class="text-slate-300">${t.codeLabel} <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
                 <div class="flex items-center justify-between">
                   <span class="text-slate-400">${t.visibilityLabel}</span>
@@ -547,15 +555,17 @@
                     <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Private</option>
                   </select>
                 </div>
-                <div class="flex items-center justify-between pt-1">
-                  <span class="text-slate-400">Featured:</span>
-                  <button onclick="toggleFeatured('${docId}', ${!n.isFeatured})" class="px-2 py-0.5 rounded text-[10px] font-bold ${n.isFeatured ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-300'}">
-                    ${n.isFeatured ? '⭐ Destacado' : '☆ Normal'}
-                  </button>
-                </div>
+                ${esOwner ? `
+                  <div class="flex items-center justify-between pt-1">
+                    <span class="text-slate-400">Featured:</span>
+                    <button onclick="toggleFeatured('${docId}', ${!n.isFeatured})" class="px-2 py-0.5 rounded text-[10px] font-bold ${n.isFeatured ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-300'}">
+                      ${n.isFeatured ? '⭐ Destacado' : '☆ Normal'}
+                    </button>
+                  </div>
+                ` : ''}
                 <div class="flex gap-1 pt-1">
-                  <a href="#/editar-nivel/${docId}" class="w-1/2 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-center rounded font-bold text-xs transition">✏️ ${t.editBtn}</a>
-                  <button onclick="eliminarNivel('${docId}')" class="w-1/2 py-1 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">🗑️ ${t.deleteBtn}</button>
+                  ${esAutor ? `<a href="#/editar-nivel/${docId}" class="w-1/2 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-center rounded font-bold text-xs transition">✏️ ${t.editBtn}</a>` : ''}
+                  <button onclick="eliminarNivel('${docId}')" class="${esAutor ? 'w-1/2' : 'w-full'} py-1 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">🗑️ ${t.deleteBtn}</button>
                 </div>
               </div>
             ` : ''}
@@ -587,20 +597,37 @@
         window.location.hash = '#/login';
         return;
       }
-      const ref = db.collection("niveles").doc(idNivel);
-      const doc = await ref.get();
-      if(doc.exists) {
-        const d = doc.data();
+
+      const votoRef = db.collection("likes_usuarios").doc(`${idNivel}_${user.uid}`);
+      const votoDoc = await votoRef.get();
+
+      if (votoDoc.exists) {
+        alert("⚠️ You have already rated this level. You cannot vote again.");
+        return;
+      }
+
+      const nivelRef = db.collection("niveles").doc(idNivel);
+      const nivelDoc = await nivelRef.get();
+
+      if (nivelDoc.exists) {
+        const d = nivelDoc.data();
         if (tipo === 1) {
-          await ref.update({ likes: (d.likes || 0) + 1 });
+          await nivelRef.update({ likes: (d.likes || 0) + 1 });
         } else {
-          await ref.update({ dislikes: (d.dislikes || 0) + 1 });
+          await nivelRef.update({ dislikes: (d.dislikes || 0) + 1 });
         }
+        await votoRef.set({ tipo: tipo, fecha: firebase.firestore.FieldValue.serverTimestamp() });
+        alert("✅ Vote recorded successfully!");
         window.location.reload();
       }
     }
 
     async function toggleFeatured(idNivel, estado) {
+      const user = auth.currentUser;
+      if (!user || user.uid !== OWNER_UID) {
+        alert("❌ Unauthorized action.");
+        return;
+      }
       await db.collection("niveles").doc(idNivel).update({ isFeatured: estado });
       window.location.reload();
     }
@@ -616,6 +643,10 @@
       }
       
       const n = doc.data();
+      const user = auth.currentUser;
+      const esOwner = user && user.uid === OWNER_UID;
+      const esAutor = user && user.uid === n.uid;
+
       let fechaStr = "Unknown date";
       if (n.fecha && typeof n.fecha.toDate === 'function') {
         fechaStr = n.fecha.toDate().toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {
@@ -634,6 +665,33 @@
             <h1 class="text-3xl font-black text-white mb-2">${n.nombre}</h1>
             <p class="text-sm text-slate-400 mb-4">by <a href="#/perfil/${n.uid}" class="text-cyan-400 font-semibold hover:underline">${n.autor}</a> • <span class="font-mono text-xs">${fechaStr}</span> • <span class="font-mono text-xs">📥 ${n.descargas || 0} ${t.downloads}</span></p>
             
+            ${(esAutor || esOwner) ? `
+              <div class="bg-slate-950 border border-cyan-500/40 p-3 rounded-xl mb-4 space-y-2 text-xs">
+                <span class="text-cyan-400 font-bold block">👑 ${esOwner && !esAutor ? 'Admin Controls (Owner)' : t.authorPanel}</span>
+                <p class="text-slate-300">${t.codeLabel} <span class="font-mono bg-slate-800 px-1 py-0.5 rounded text-white">${n.codigo}</span></p>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">${t.visibilityLabel}</span>
+                  <select onchange="cambiarVisibilidad('${idNivel}', this.value)" class="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-700">
+                    <option value="publico" ${n.visibilidad === 'publico' ? 'selected' : ''}>Public</option>
+                    <option value="nolistado" ${n.visibilidad === 'nolistado' ? 'selected' : ''}>Unlisted</option>
+                    <option value="privado" ${n.visibilidad === 'privado' ? 'selected' : ''}>Private</option>
+                  </select>
+                </div>
+                ${esOwner ? `
+                  <div class="flex items-center justify-between pt-1">
+                    <span class="text-slate-400">Featured:</span>
+                    <button onclick="toggleFeatured('${idNivel}', ${!n.isFeatured})" class="px-3 py-1 rounded text-xs font-bold ${n.isFeatured ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-300'}">
+                      ${n.isFeatured ? 'Quitar Featured' : 'Hacer Featured'}
+                    </button>
+                  </div>
+                ` : ''}
+                <div class="flex gap-2 pt-2">
+                  ${esAutor ? `<a href="#/editar-nivel/${idNivel}" class="w-1/2 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-center rounded font-bold text-xs transition">✏️ ${t.editBtn}</a>` : ''}
+                  <button onclick="eliminarNivel('${idNivel}')" class="${esAutor ? 'w-1/2' : 'w-full'} py-1.5 bg-red-600/80 hover:bg-red-500 text-white rounded font-bold text-xs transition">🗑️ ${t.deleteBtn}</button>
+                </div>
+              </div>
+            ` : ''}
+
             <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl mb-6">
               <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${t.levelDesc}</h3>
               <p class="text-sm text-slate-200 leading-relaxed">${n.descripcion || t.noDescription}</p>
@@ -768,7 +826,7 @@
                   <img src="${u.avatar || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full object-cover border border-cyan-400">
                   <div>
                     <h3 class="font-bold text-white">${u.username}</h3>
-                    <p class="text-xs text-slate-400">${u.bio || 'Creator'}</p>
+                    <p class="text-xs text-slate-400">${u.bio || 'User'}</p>
                   </div>
                 </div>
                 <a href="#/perfil/${doc.id}" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs">View Profile</a>
@@ -794,6 +852,7 @@
       }
       const u = docUser.data();
       const esMiPerfil = currentUser && currentUser.uid === uid;
+      const esOwner = currentUser && currentUser.uid === OWNER_UID;
 
       app.innerHTML = `
         <div class="mb-4">
@@ -804,13 +863,19 @@
           <div class="flex-grow">
             <div class="flex items-center gap-2 mb-1">
               <h1 class="text-2xl font-black text-white">${u.username}</h1>
-              <span class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">${t.creatorBadge}</span>
             </div>
             <p class="text-sm text-slate-300 mb-2 leading-relaxed">${u.bio || t.noBio}</p>
           </div>
-          ${esMiPerfil ? `
-            <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">${t.editProfile}</button>
-          ` : ''}
+          <div class="flex flex-col gap-2">
+            ${esMiPerfil ? `
+              <button onclick="mostrarFormularioEditarPerfil()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 rounded-xl text-xs font-bold transition">${t.editProfile}</button>
+            ` : ''}
+            ${esOwner && !esMiPerfil ? `
+              <button onclick="toggleBloqueoSubir('${uid}', ${!u.bloqueadoSubir})" class="px-4 py-2 bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-800 rounded-xl text-xs font-bold transition">
+                ${u.bloqueadoSubir ? '🔓 Permitir Subir Niveles' : '🔒 Bloquear Subir Niveles'}
+              </button>
+            ` : ''}
+          </div>
         </div>
 
         <div id="editar-perfil-box" class="hidden bg-slate-900 border border-cyan-500/50 p-6 rounded-xl mb-6">
@@ -838,9 +903,8 @@
       `;
 
       const gridNiveles = document.getElementById('grid-perfil-niveles');
-      // Si es tu propio perfil, muestra TODOS tus niveles (incluso privados/nolistados) para que puedas gestionarlos
       let queryPerfil = db.collection("niveles").where("uid", "==", uid);
-      if (!esMiPerfil) {
+      if (!esMiPerfil && !esOwner) {
         queryPerfil = queryPerfil.where("visibilidad", "==", "publico");
       }
 
@@ -854,6 +918,17 @@
           renderizarTarjetaNivel({ id: docNivel.id, ...docNivel.data() }, gridNiveles);
         });
       });
+    }
+
+    async function toggleBloqueoSubir(uid, estado) {
+      const user = auth.currentUser;
+      if (!user || user.uid !== OWNER_UID) {
+        alert("❌ Unauthorized action.");
+        return;
+      }
+      await db.collection("usuarios").doc(uid).update({ bloqueadoSubir: estado });
+      alert(`✅ User status updated. Upload blocked: ${estado}`);
+      window.location.reload();
     }
 
     function mostrarFormularioEditarPerfil() {
@@ -942,9 +1017,9 @@
         await db.collection("usuarios").doc(cred.user.uid).set({
           username: username,
           email: email,
-          bio: bio || 'Hello! I am a level creator on GD Level Share.',
+          bio: bio || 'Hello! I am a user on GD Level Share.',
           avatar: avatarBase64,
-          estadoBaneo: 'ninguno',
+          bloqueadoSubir: false,
           creado: firebase.firestore.FieldValue.serverTimestamp()
         });
         
