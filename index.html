@@ -81,7 +81,7 @@
 
   <!-- INDICADOR DE VERSIÓN FLOTANTE -->
   <div class="fixed bottom-2 right-3 bg-slate-900/80 backdrop-blur border border-slate-800 px-2.5 py-1 rounded-md text-[10px] font-mono text-cyan-400 z-50 pointer-events-none shadow-lg">
-    VERSION: <span class="text-white font-bold">v1.3.5.1</span>
+    VERSION: <span class="text-white font-bold">v1.3.5.2</span>
   </div>
 
   <!-- MODAL DE INFORMACIÓN -->
@@ -107,7 +107,7 @@
   </div>
 
   <script>
-    // Clave del sitio pública de reCAPTCHA v2
+    // Tu propia Site Key de Google reCAPTCHA v2
     const RECAPTCHA_SITE_KEY = "6Lex8BMuAAAAAPx6P5c7RwFUNi_9dpZPX0hw_Il9";
 
     let recaptchaWidgetId = null;
@@ -119,7 +119,7 @@
     function renderizarCaptchaSeguro() {
       const contenedor = document.getElementById('recaptcha-container');
       if (contenedor && window.grecaptcha && window.grecaptcha.render) {
-        contenedor.innerHTML = ""; // Limpiar antes de re-renderizar
+        contenedor.innerHTML = "";
         try {
           recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
             'sitekey': RECAPTCHA_SITE_KEY
@@ -207,7 +207,7 @@
         loginTitle: "Iniciar Sesión", registerTitle: "Registrarse", usernamePlaceholder: "Nombre de usuario (ej. DashKing)", emailPlaceholder: "correo@ejemplo.com", passPlaceholder: "Contraseña (mín. 6 caracteres)", bioPlaceholder: "Descripción o biografía corta...", avatarLabel: "Foto de perfil (Máx 1MB)",
         enterBtn: "Entrar", registerBtn: "Crear Cuenta", downloadBtn: "Descargar", searchBtn: "Buscar", deleteBtn: "Eliminar Nivel", editBtn: "Editar Nivel", searchUsersPlaceholder: "Buscar por nombre de usuario...", searchUserBtn: "Buscar Creador",
         forgotPass: "¿Olvidaste tu contraseña?", resendEmail: "Reenviar correo",
-        editProfile: "✏️ Edit Profile", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
+        editProfile: "✏️ Editar Perfil", noBio: "Sin descripción.", publicLevelsTitle: "Niveles Públicos del Creador", noLevelsUser: "Este usuario no tiene niveles públicos publicados.",
         loadingText: "Cargando...", authorPanel: "Panel de Autor:", codeLabel: "Código:", visibilityLabel: "Visibilidad:", backToMenu: "← Menú Principal",
         noDescription: "Este nivel no tiene descripción proporcionada.", downloads: "Descargas",
         followers: "Seguidores", following: "Siguiendo", followBtn: "Seguir", unfollowBtn: "Dejar de seguir", hideStats: "Ocultar contadores",
@@ -260,13 +260,14 @@
 
             const avatar = u.avatar || 'https://via.placeholder.com/40';
             const username = u.username || user.displayName || 'User';
+            // Corrección aplicada para evitar que se aplaste en celulares y mostrar el nombre adecuadamente
             authContainer.innerHTML = `
               <div class="flex items-center gap-2">
-                <a href="#/perfil/${user.uid}" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 p-1.5 pr-3 rounded-full border border-slate-700 transition">
-                  <img src="${avatar}" class="w-7 h-7 rounded-full object-cover border border-cyan-400">
-                  <span class="text-xs font-bold text-cyan-400 hidden sm:inline">${username}</span>
+                <a href="#/perfil/${user.uid}" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 p-1 pr-2 sm:pr-3 rounded-full border border-slate-700 transition shrink-0">
+                  <img src="${avatar}" class="w-7 h-7 min-w-[28px] min-h-[28px] rounded-full object-cover border border-cyan-400 shrink-0">
+                  <span class="text-xs font-bold text-cyan-400 max-w-[90px] sm:max-w-none truncate">${username}</span>
                 </a>
-                <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400" title="${t.logout}">
+                <button onclick="cerrarSesion()" class="p-1.5 text-xs font-bold rounded bg-slate-800 hover:bg-slate-700 text-red-400 shrink-0" title="${t.logout}">
                   <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -542,7 +543,6 @@
         return;
       }
 
-      // Validar Captcha
       const captchaResponse = grecaptcha.getResponse(recaptchaWidgetId);
       if (!captchaResponse) {
         mostrarToast(t.captchaErr, 'error');
@@ -1334,7 +1334,6 @@
         return;
       }
 
-      // Validar Captcha
       const captchaResponse = grecaptcha.getResponse(recaptchaWidgetId);
       if (!captchaResponse) {
         mostrarErrorAuth(t.captchaErr);
@@ -1382,7 +1381,6 @@
         return;
       }
 
-      // Validar Captcha
       const captchaResponse = grecaptcha.getResponse(recaptchaWidgetId);
       if (!captchaResponse) {
         mostrarErrorAuth(t.captchaErr);
